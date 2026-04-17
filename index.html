@@ -437,6 +437,77 @@
     margin-top: 16px;
   }
 
+  /* COMPLIANCE CARD */
+  .compliance-banner {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .compliance-main {
+    display: flex; align-items: center; gap: 16px; flex: 1; min-width: 220px;
+  }
+  .compliance-dial {
+    position: relative; width: 80px; height: 80px; flex-shrink: 0;
+  }
+  .compliance-dial svg { width: 80px; height: 80px; transform: rotate(-90deg); }
+  .compliance-dial circle { fill: none; stroke-width: 8; }
+  .dial-bg { stroke: #e2e8f0; }
+  .dial-fill { stroke-linecap: round; transition: stroke-dashoffset 0.6s ease, stroke 0.4s; }
+  .dial-pct {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem; font-weight: 700;
+    color: var(--slate);
+  }
+  .compliance-text h3 { font-size: 1rem; font-weight: 700; color: var(--slate); }
+  .compliance-text p  { font-size: 0.78rem; color: var(--slate-light); margin-top: 3px; }
+  .compliance-rating {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.78rem; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; margin-top: 6px;
+  }
+  .rating-excellent { background: var(--green-light); color: #065f46; }
+  .rating-good      { background: #d1fae5; color: #065f46; }
+  .rating-partial   { background: var(--amber-light); color: #92400e; }
+  .rating-poor      { background: var(--red-light); color: #991b1b; }
+
+  /* WARD COMPLIANCE GRID */
+  .ward-compliance-grid {
+    display: flex; gap: 12px; flex-wrap: wrap; flex: 2;
+  }
+  .ward-comp-card {
+    flex: 1; min-width: 110px;
+    border-radius: 10px; padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+  }
+  .ward-comp-card .wc-name { font-size: 0.75rem; font-weight: 700; margin-bottom: 6px; }
+  .ward-comp-card .wc-pct  { font-size: 1.3rem; font-weight: 700; font-family: 'DM Mono', monospace; line-height: 1; }
+  .ward-comp-card .wc-bar-wrap { margin-top: 6px; height: 5px; border-radius: 99px; background: #e2e8f0; overflow: hidden; }
+  .ward-comp-card .wc-bar  { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+  .ward-comp-card .wc-sub  { font-size: 0.7rem; color: var(--slate-light); margin-top: 4px; }
+
+  /* PER-PATIENT COMPLIANCE % column */
+  .pct-pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem; font-weight: 700;
+    padding: 3px 9px; border-radius: 6px; min-width: 52px;
+  }
+  .pct-100  { background: var(--green-light); color: #065f46; }
+  .pct-high { background: #d1fae5; color: #065f46; }
+  .pct-mid  { background: var(--amber-light); color: #92400e; }
+  .pct-low  { background: var(--red-light); color: #991b1b; }
+  .pct-none { background: var(--bg); color: var(--slate-light); border: 1px dashed #cbd5e1; }
+
   /* PRINT */
   @media print {
     header { background: var(--teal-dark) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -499,6 +570,25 @@
       <div class="stat-num" id="statNone">0</div>
       <div class="stat-label">Not Completed</div>
     </div>
+  </div>
+
+  <!-- COMPLIANCE BANNER -->
+  <div class="compliance-banner" id="complianceBanner">
+    <div class="compliance-main">
+      <div class="compliance-dial">
+        <svg viewBox="0 0 80 80">
+          <circle class="dial-bg" cx="40" cy="40" r="34"/>
+          <circle class="dial-fill" id="dialFill" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+        </svg>
+        <div class="dial-pct" id="dialPct">—</div>
+      </div>
+      <div class="compliance-text">
+        <h3>Overall Compliance Rate</h3>
+        <p id="complianceSubtext">Add patients and tick slots to see compliance</p>
+        <div class="compliance-rating" id="complianceRating" style="display:none"></div>
+      </div>
+    </div>
+    <div class="ward-compliance-grid" id="wardComplianceGrid"></div>
   </div>
 
   <!-- LEGEND -->
@@ -580,13 +670,14 @@
             <span class="time-sub">2:00 PM – 4:00 PM</span>
           </th>
           <th>Status</th>
+          <th style="text-align:center">Compliance %</th>
           <th>Notes</th>
           <th></th>
         </tr>
       </thead>
       <tbody id="tableBody">
         <tr>
-          <td colspan="10">
+          <td colspan="11">
             <div class="empty-state">
               <div class="empty-icon">🩹</div>
               <p>No patients added yet. Click <strong>Add Patient</strong> to get started.</p>
@@ -771,13 +862,13 @@
       : patients.filter(p => p.ward === activeFilter);
 
     if (patients.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients added yet. Click <strong>Add Patient</strong> to get started.</p></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients added yet. Click <strong>Add Patient</strong> to get started.</p></div></td></tr>`;
       updateStats();
       return;
     }
 
     if (visible.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🏥</div><p>No patients in this ward yet.</p></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">🏥</div><p>No patients in this ward yet.</p></div></td></tr>`;
       updateStats();
       return;
     }
@@ -828,6 +919,7 @@
           <td><span class="ward-badge ${wardCls}">${wardIcon} ${escHtml(wardKey)}</span></td>
           ${checks}
           <td>${statusHtml}</td>
+          <td style="text-align:center">${compPillHtml(vals)}</td>
           <td class="notes-cell">
             <textarea class="notes-input" rows="1" placeholder="Add note..." onchange="updateNotes(${p.id},this.value)">${escHtml(p.notes||'')}</textarea>
           </td>
@@ -841,24 +933,105 @@
     updateStats();
   }
 
+  function compPillHtml(vals) {
+    const recorded = vals.filter(v => v !== null);
+    if (recorded.length === 0) return '<span class="pct-pill pct-none">—</span>';
+    const pct = Math.round((vals.filter(v => v === true).length / 3) * 100);
+    let cls = pct === 100 ? 'pct-100' : pct >= 67 ? 'pct-high' : pct >= 34 ? 'pct-mid' : 'pct-low';
+    return `<span class="pct-pill ${cls}">${pct}%</span>`;
+  }
+
   function updateStats() {
     const total = patients.length;
     let allDone = 0, partial = 0, noneDone = 0;
     const slots = ['morning', 'midday', 'afternoon'];
 
+    // Overall: compliance = applied slots / total possible slots (only counting recorded)
+    let totalApplied = 0, totalRecorded = 0;
+
     patients.forEach(p => {
       const vals = slots.map(s => p[s]);
       const filled = vals.filter(v => v !== null);
+      totalApplied  += vals.filter(v => v === true).length;
+      totalRecorded += filled.length;
       if (filled.length === 0) return;
       if (vals.every(v => v === true)) allDone++;
       else if (vals.every(v => v === false)) noneDone++;
       else partial++;
     });
 
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statAll').textContent = allDone;
+    document.getElementById('statTotal').textContent   = total;
+    document.getElementById('statAll').textContent     = allDone;
     document.getElementById('statPartial').textContent = partial;
-    document.getElementById('statNone').textContent = noneDone;
+    document.getElementById('statNone').textContent    = noneDone;
+
+    // ── Dial ────────────────────────────────────────────────
+    const dialFill   = document.getElementById('dialFill');
+    const dialPct    = document.getElementById('dialPct');
+    const subtext    = document.getElementById('complianceSubtext');
+    const ratingEl   = document.getElementById('complianceRating');
+    const CIRC = 213.6;
+
+    if (totalRecorded === 0) {
+      dialFill.style.strokeDashoffset = CIRC;
+      dialFill.style.stroke = '#e2e8f0';
+      dialPct.textContent = '—';
+      subtext.textContent = 'Tick the slot boxes above to calculate compliance';
+      ratingEl.style.display = 'none';
+    } else {
+      const pct = Math.round((totalApplied / totalRecorded) * 100);
+      const offset = CIRC - (CIRC * pct / 100);
+      dialFill.style.strokeDashoffset = offset;
+      dialPct.textContent = pct + '%';
+      subtext.textContent = `${totalApplied} of ${totalRecorded} recorded slots applied correctly`;
+
+      let ratingText, ratingCls, stroke;
+      if (pct >= 90)      { ratingText = '🟢 Excellent'; ratingCls = 'rating-excellent'; stroke = '#10b981'; }
+      else if (pct >= 75) { ratingText = '🟡 Good';      ratingCls = 'rating-good';      stroke = '#f59e0b'; }
+      else if (pct >= 50) { ratingText = '🟠 Needs Improvement'; ratingCls = 'rating-partial'; stroke = '#f59e0b'; }
+      else                { ratingText = '🔴 Non-Compliant';      ratingCls = 'rating-poor';    stroke = '#ef4444'; }
+
+      dialFill.style.stroke = stroke;
+      ratingEl.style.display = 'inline-flex';
+      ratingEl.className = 'compliance-rating ' + ratingCls;
+      ratingEl.textContent = ratingText;
+    }
+
+    // ── Ward compliance cards ────────────────────────────────
+    const WARDS = [
+      { key: 'Ward A', cls: 'ward-A', color: '#7c3aed', bar: '#a78bfa' },
+      { key: 'Ward B', cls: 'ward-B', color: '#92400e', bar: '#fcd34d' },
+      { key: 'ICU 1',  cls: 'ward-ICU1', color: '#991b1b', bar: '#fca5a5' },
+      { key: 'ICU 2',  cls: 'ward-ICU2', color: '#075985', bar: '#7dd3fc' },
+    ];
+
+    const grid = document.getElementById('wardComplianceGrid');
+    grid.innerHTML = WARDS.map(w => {
+      const wp = patients.filter(p => (p.ward || 'Ward A') === w.key);
+      if (wp.length === 0) {
+        return `<div class="ward-comp-card">
+          <div class="wc-name" style="color:${w.color}">${w.key}</div>
+          <div class="wc-pct" style="color:#94a3b8">—</div>
+          <div class="wc-bar-wrap"><div class="wc-bar" style="width:0%;background:${w.bar}"></div></div>
+          <div class="wc-sub">No patients</div>
+        </div>`;
+      }
+      let wApplied = 0, wRecorded = 0;
+      wp.forEach(p => {
+        slots.forEach(s => {
+          if (p[s] !== null) { wRecorded++; if (p[s] === true) wApplied++; }
+        });
+      });
+      const pct = wRecorded === 0 ? null : Math.round((wApplied / wRecorded) * 100);
+      const pctStr = pct === null ? '—' : pct + '%';
+      const barW   = pct === null ? 0 : pct;
+      return `<div class="ward-comp-card">
+        <div class="wc-name" style="color:${w.color}">${w.key}</div>
+        <div class="wc-pct" style="color:${w.color}">${pctStr}</div>
+        <div class="wc-bar-wrap"><div class="wc-bar" style="width:${barW}%;background:${w.bar}"></div></div>
+        <div class="wc-sub">${wp.length} patient${wp.length !== 1 ? 's' : ''} · ${wApplied}/${wRecorded} slots</div>
+      </div>`;
+    }).join('');
   }
 
   function escHtml(str) {
