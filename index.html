@@ -692,11 +692,11 @@
       <div class="form-group" style="min-width:100%">
         <label>SPLINT TYPE(S) — select one or more</label>
         <div class="splint-checks" id="newSplintChecks">
-          <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Hand Splint"> ✋ Hand Splint</label>
-          <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Foot Splint"> 🦶 Foot Splint</label>
-          <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Hand Rolls"> 🤛 Hand Rolls</label>
-          <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Elbow Gaiters"> 💪 Elbow Gaiters</label>
-          <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Knee Immobilizer"> 🦵 Knee Immobilizer</label>
+          <div class="splint-check-label" onclick="toggleSplintCheck(this)" data-value="Hand Splint"><input type="checkbox" value="Hand Splint"> ✋ Hand Splint</div>
+          <div class="splint-check-label" onclick="toggleSplintCheck(this)" data-value="Foot Splint"><input type="checkbox" value="Foot Splint"> 🦶 Foot Splint</div>
+          <div class="splint-check-label" onclick="toggleSplintCheck(this)" data-value="Hand Rolls"><input type="checkbox" value="Hand Rolls"> 🤛 Hand Rolls</div>
+          <div class="splint-check-label" onclick="toggleSplintCheck(this)" data-value="Elbow Gaiters"><input type="checkbox" value="Elbow Gaiters"> 💪 Elbow Gaiters</div>
+          <div class="splint-check-label" onclick="toggleSplintCheck(this)" data-value="Knee Immobilizer"><input type="checkbox" value="Knee Immobilizer"> 🦵 Knee Immobilizer</div>
         </div>
       </div>
       <div class="form-group" style="max-width:200px">
@@ -792,11 +792,11 @@
     <div class="modal-form-group">
       <label>SPLINT TYPE(S) — select one or more</label>
       <div class="splint-checks" id="editSplintChecks">
-        <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Hand Splint"> ✋ Hand Splint</label>
-        <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Foot Splint"> 🦶 Foot Splint</label>
-        <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Hand Rolls"> 🤛 Hand Rolls</label>
-        <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Elbow Gaiters"> 💪 Elbow Gaiters</label>
-        <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Knee Immobilizer"> 🦵 Knee Immobilizer</label>
+        <div class="splint-check-label" onclick="toggleSplintCheck(this)" data-value="Hand Splint"><input type="checkbox" value="Hand Splint"> ✋ Hand Splint</div>
+        <div class="splint-check-label" onclick="toggleSplintCheck(this)" data-value="Foot Splint"><input type="checkbox" value="Foot Splint"> 🦶 Foot Splint</div>
+        <div class="splint-check-label" onclick="toggleSplintCheck(this)" data-value="Hand Rolls"><input type="checkbox" value="Hand Rolls"> 🤛 Hand Rolls</div>
+        <div class="splint-check-label" onclick="toggleSplintCheck(this)" data-value="Elbow Gaiters"><input type="checkbox" value="Elbow Gaiters"> 💪 Elbow Gaiters</div>
+        <div class="splint-check-label" onclick="toggleSplintCheck(this)" data-value="Knee Immobilizer"><input type="checkbox" value="Knee Immobilizer"> 🦵 Knee Immobilizer</div>
       </div>
     </div>
     <div class="modal-form-group">
@@ -840,13 +840,10 @@
   };
   const ALL_SPLINTS = ['Hand Splint','Foot Splint','Hand Rolls','Elbow Gaiters','Knee Immobilizer'];
 
-  function toggleSplintCheck(label) {
-    // Prevent double-fire from click bubbling
-    const cb = label.querySelector('input[type="checkbox"]');
-    // The click already toggled the checkbox, just sync the style
-    setTimeout(() => {
-      label.classList.toggle('selected', cb.checked);
-    }, 0);
+  function toggleSplintCheck(el) {
+    const cb = el.querySelector('input[type="checkbox"]');
+    cb.checked = !cb.checked;
+    el.classList.toggle('selected', cb.checked);
   }
 
   function getCheckedSplints(containerId) {
@@ -861,6 +858,8 @@
       cb.closest('label').classList.toggle('selected', cb.checked);
     });
   }
+
+  function getStorageKey(dateKey) {
     return 'splint_audit_' + dateKey;
   }
 
