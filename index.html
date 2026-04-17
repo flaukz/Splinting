@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Splint Application Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #0d9488;
+    --teal-light: #14b8a6;
+    --teal-dark: #0f766e;
+    --teal-bg: #f0fdfa;
+    --teal-border: #99f6e4;
+    --slate: #1e293b;
+    --slate-mid: #334155;
+    --slate-light: #64748b;
+    --bg: #f8fafc;
+    --white: #ffffff;
+    --red: #ef4444;
+    --red-light: #fee2e2;
+    --green: #10b981;
+    --green-light: #d1fae5;
+    --amber: #f59e0b;
+    --amber-light: #fef3c7;
+    --border: #e2e8f0;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05);
+    --shadow-lg: 0 4px 24px rgba(0,0,0,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--slate);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 60%, var(--teal-light) 100%);
+    color: white;
+    padding: 0;
+    box-shadow: 0 4px 20px rgba(13,148,136,0.3);
+  }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 32px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-icon {
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+  }
+  .header-title h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px; }
+  .header-title p { font-size: 0.82rem; opacity: 0.85; margin-top: 2px; font-weight: 400; }
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .week-badge {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* MAIN */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  /* TOP BAR */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--slate);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title span { color: var(--slate-light); font-weight: 400; font-size: 0.88rem; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--teal); color: white; }
+  .btn-primary:hover { background: var(--teal-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(13,148,136,0.3); }
+  .btn-outline { background: white; color: var(--slate); border: 1.5px solid var(--border); }
+  .btn-outline:hover { border-color: var(--teal); color: var(--teal); }
+  .btn-danger { background: var(--red-light); color: var(--red); border: none; }
+  .btn-danger:hover { background: #fecaca; }
+
+  /* WEEK SELECTOR */
+  .week-selector {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow);
+  }
+  .week-selector label { font-size: 0.85rem; font-weight: 600; color: var(--slate-light); white-space: nowrap; }
+  .week-selector input[type="date"] {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88rem;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--slate);
+    background: var(--bg);
+    cursor: pointer;
+  }
+  .week-selector input[type="date"]:focus { outline: none; border-color: var(--teal); }
+  .wednesday-label {
+    background: var(--teal-bg);
+    color: var(--teal-dark);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--teal-border);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .stat-num { font-size: 1.8rem; font-weight: 700; font-family: 'DM Mono', monospace; line-height: 1; }
+  .stat-card .stat-label { font-size: 0.78rem; color: var(--slate-light); margin-top: 4px; font-weight: 500; }
+  .stat-total .stat-num { color: var(--slate); }
+  .stat-done .stat-num { color: var(--green); }
+  .stat-missing .stat-num { color: var(--red); }
+  .stat-partial .stat-num { color: var(--amber); }
+
+  /* LEGEND */
+  .legend {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow);
+  }
+  .legend-title { font-size: 0.8rem; font-weight: 600; color: var(--slate-light); }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; font-weight: 500; }
+  .legend-dot {
+    width: 14px; height: 14px; border-radius: 4px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 9px; color: white; flex-shrink: 0;
+  }
+  .dot-green { background: var(--green); }
+  .dot-red { background: #fca5a5; border: 1.5px solid var(--red); }
+  .dot-empty { background: var(--bg); border: 1.5px dashed #cbd5e1; }
+
+  /* TABLE WRAPPER */
+  .table-wrapper {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr {
+    background: var(--slate);
+    color: white;
+  }
+  thead th {
+    padding: 13px 16px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: left;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  thead th.time-header {
+    text-align: center;
+    background: var(--teal-dark);
+    font-size: 0.72rem;
+  }
+  thead th.time-sub {
+    font-size: 0.68rem;
+    font-weight: 400;
+    opacity: 0.75;
+    display: block;
+    font-family: 'DM Mono', monospace;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-top: 2px;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #f8fafc; }
+
+  tbody td {
+    padding: 12px 16px;
+    font-size: 0.88rem;
+    vertical-align: middle;
+  }
+
+  .patient-name { font-weight: 600; color: var(--slate); }
+  .room-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    background: var(--teal-bg);
+    color: var(--teal-dark);
+    padding: 3px 9px;
+    border-radius: 5px;
+    border: 1px solid var(--teal-border);
+    white-space: nowrap;
+  }
+
+  td.check-cell { text-align: center; }
+
+  .check-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1.5px dashed #cbd5e1;
+    background: var(--bg);
+  }
+  .check-wrap:hover { border-color: var(--teal); background: var(--teal-bg); }
+  .check-wrap input[type="checkbox"] { display: none; }
+  .check-wrap.checked {
+    background: var(--green);
+    border: 1.5px solid var(--green);
+  }
+  .check-wrap.checked .tick { display: block; }
+  .check-wrap.checked .cross { display: none; }
+  .tick { display: none; color: white; font-size: 16px; font-weight: 700; }
+  .cross { display: none; }
+
+  .row-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .status-all { background: var(--green-light); color: #065f46; }
+  .status-none { background: var(--red-light); color: #991b1b; }
+  .status-partial { background: var(--amber-light); color: #92400e; }
+  .status-empty { background: var(--bg); color: var(--slate-light); border: 1px dashed #cbd5e1; }
+
+  .actions-cell { display: flex; align-items: center; gap: 8px; }
+  .btn-icon {
+    width: 30px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+    color: var(--slate-light);
+  }
+  .btn-icon:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+
+  /* ADD PATIENT FORM */
+  .add-form {
+    background: white;
+    border: 1.5px solid var(--teal-border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 0 0 4px rgba(20,184,166,0.07);
+    display: none;
+  }
+  .add-form.open { display: block; }
+  .add-form h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 16px; color: var(--teal-dark); display: flex; align-items: center; gap: 8px; }
+  .form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 160px; }
+  .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--slate-light); }
+  .form-group input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    padding: 9px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--slate);
+    transition: border-color 0.15s;
+    background: var(--bg);
+  }
+  .form-group input:focus { outline: none; border-color: var(--teal); background: white; }
+  .form-group input::placeholder { color: #94a3b8; }
+
+  /* NOTES */
+  .notes-cell { max-width: 160px; }
+  .notes-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    padding: 5px 9px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    width: 100%;
+    background: var(--bg);
+    color: var(--slate);
+    resize: none;
+    transition: border-color 0.15s;
+  }
+  .notes-input:focus { outline: none; border-color: var(--teal); background: white; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--slate-light);
+  }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.9rem; }
+
+  /* FOOTER */
+  .footer-note {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--slate-light);
+    padding: 16px 0;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+  }
+
+  /* PRINT */
+  @media print {
+    header { background: var(--teal-dark) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .btn, .add-form, .week-selector { display: none !important; }
+    .table-wrapper { box-shadow: none; border: 1px solid #ccc; }
+  }
+
+  @media (max-width: 600px) {
+    .header-inner { padding: 20px 16px; }
+    main { padding: 20px 12px; }
+    thead th { padding: 10px 8px; font-size: 0.68rem; }
+    tbody td { padding: 10px 8px; font-size: 0.82rem; }
+    .check-wrap { width: 28px; height: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="header-icon">🩹</div>
+      <div class="header-title">
+        <h1>Splint Application Audit</h1>
+        <p>Weekly Wednesday Compliance Tracker · Nursing &amp; HCA</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="week-badge" id="todayBadge">—</div>
+      <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- WEEK SELECTOR -->
+  <div class="week-selector">
+    <label>📅 Audit Wednesday:</label>
+    <input type="date" id="auditDate" onchange="handleDateChange()">
+    <div class="wednesday-label" id="wednesdayLabel">Select a Wednesday</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card stat-total">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">Total Patients</div>
+    </div>
+    <div class="stat-card stat-done">
+      <div class="stat-num" id="statAll">0</div>
+      <div class="stat-label">All Slots Completed ✓</div>
+    </div>
+    <div class="stat-card stat-partial">
+      <div class="stat-num" id="statPartial">0</div>
+      <div class="stat-label">Partially Completed</div>
+    </div>
+    <div class="stat-card stat-missing">
+      <div class="stat-num" id="statNone">0</div>
+      <div class="stat-label">Not Completed</div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <span class="legend-title">KEY:</span>
+    <div class="legend-item"><div class="legend-dot dot-green">✓</div> Applied on time</div>
+    <div class="legend-item"><div class="legend-dot dot-red"></div> Missed / Not applied</div>
+    <div class="legend-item"><div class="legend-dot dot-empty"></div> Not yet recorded</div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="section-title">Patient List <span id="patientCountLabel">(0 patients)</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="toggleForm()">➕ Add Patient</button>
+      <button class="btn btn-primary" onclick="saveData()">💾 Save</button>
+    </div>
+  </div>
+
+  <!-- ADD FORM -->
+  <div class="add-form" id="addForm">
+    <h3>🏥 Add New Patient</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>PATIENT FULL NAME</label>
+        <input type="text" id="newName" placeholder="e.g. John Smith">
+      </div>
+      <div class="form-group" style="max-width:160px">
+        <label>ROOM / BED NUMBER</label>
+        <input type="text" id="newRoom" placeholder="e.g. Room 4B">
+      </div>
+      <div class="form-group" style="max-width:200px">
+        <label>NOTES (optional)</label>
+        <input type="text" id="newNotes" placeholder="e.g. Right hand only">
+      </div>
+      <button class="btn btn-primary" onclick="addPatient()" style="margin-bottom:1px">Add Patient</button>
+      <button class="btn btn-outline" onclick="toggleForm()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrapper">
+    <table id="auditTable">
+      <thead>
+        <tr>
+          <th style="width:36px">#</th>
+          <th>Patient Name</th>
+          <th>Room</th>
+          <th class="time-header">
+            Morning Slot
+            <span class="time-sub">6:00 AM – 8:00 AM</span>
+          </th>
+          <th class="time-header">
+            Midday Slot
+            <span class="time-sub">10:00 AM – 12:00 PM</span>
+          </th>
+          <th class="time-header">
+            Afternoon Slot
+            <span class="time-sub">2:00 PM – 4:00 PM</span>
+          </th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr>
+          <td colspan="9">
+            <div class="empty-state">
+              <div class="empty-icon">🩹</div>
+              <p>No patients added yet. Click <strong>Add Patient</strong> to get started.</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer-note">
+    💡 Data is saved in your browser. Use <strong>Save</strong> to preserve your audit. For records, use <strong>Print</strong> to generate a paper copy.
+  </div>
+
+</main>
+
+<script>
+  // ─── DATA ───────────────────────────────────────────────
+  let patients = [];
+  let auditDateKey = '';
+
+  const SLOTS = ['morning', 'midday', 'afternoon'];
+
+  function getStorageKey(dateKey) {
+    return 'splint_audit_' + dateKey;
+  }
+
+  // ─── INIT ────────────────────────────────────────────────
+  window.onload = function() {
+    // Set today's date display
+    const today = new Date();
+    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('todayBadge').textContent = today.toLocaleDateString('en-GB', opts);
+
+    // Set default date to nearest Wednesday
+    const dateInput = document.getElementById('auditDate');
+    const wednesday = getNearestWednesday(today);
+    const formatted = wednesday.toISOString().split('T')[0];
+    dateInput.value = formatted;
+    handleDateChange();
+  };
+
+  function getNearestWednesday(date) {
+    const d = new Date(date);
+    const day = d.getDay(); // 0=Sun, 3=Wed
+    const diff = (3 - day + 7) % 7;
+    d.setDate(d.getDate() + (diff === 0 ? 0 : diff));
+    return d;
+  }
+
+  function handleDateChange() {
+    const val = document.getElementById('auditDate').value;
+    if (!val) return;
+    const d = new Date(val + 'T00:00:00');
+    const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
+    const label = document.getElementById('wednesdayLabel');
+
+    if (dayName === 'Wednesday') {
+      label.textContent = '✅ ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      label.style.background = 'var(--green-light)';
+      label.style.color = '#065f46';
+      label.style.borderColor = '#6ee7b7';
+    } else {
+      label.textContent = '⚠️ Not a Wednesday (' + dayName + ')';
+      label.style.background = 'var(--amber-light)';
+      label.style.color = '#92400e';
+      label.style.borderColor = '#fcd34d';
+    }
+
+    // Load data for this date
+    auditDateKey = val;
+    loadData();
+  }
+
+  // ─── STORAGE ─────────────────────────────────────────────
+  function saveData() {
+    if (!auditDateKey) { alert('Please select an audit date first.'); return; }
+    localStorage.setItem(getStorageKey(auditDateKey), JSON.stringify(patients));
+    // Visual feedback
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✅ Saved!';
+    btn.style.background = 'var(--green)';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 1800);
+  }
+
+  function loadData() {
+    const stored = localStorage.getItem(getStorageKey(auditDateKey));
+    if (stored) {
+      patients = JSON.parse(stored);
+    } else {
+      patients = [];
+    }
+    render();
+  }
+
+  // ─── FORM ─────────────────────────────────────────────────
+  function toggleForm() {
+    const form = document.getElementById('addForm');
+    form.classList.toggle('open');
+    if (form.classList.contains('open')) {
+      document.getElementById('newName').focus();
+    }
+  }
+
+  function addPatient() {
+    const name = document.getElementById('newName').value.trim();
+    const room = document.getElementById('newRoom').value.trim();
+    const notes = document.getElementById('newNotes').value.trim();
+    if (!name) { document.getElementById('newName').focus(); return; }
+    if (!room) { document.getElementById('newRoom').focus(); return; }
+
+    patients.push({
+      id: Date.now(),
+      name,
+      room,
+      notes,
+      morning: null,
+      midday: null,
+      afternoon: null,
+    });
+
+    document.getElementById('newName').value = '';
+    document.getElementById('newRoom').value = '';
+    document.getElementById('newNotes').value = '';
+    document.getElementById('addForm').classList.remove('open');
+    render();
+    saveData();
+  }
+
+  function deletePatient(id) {
+    if (!confirm('Remove this patient from the audit?')) return;
+    patients = patients.filter(p => p.id !== id);
+    render();
+  }
+
+  // ─── TOGGLE CHECK ─────────────────────────────────────────
+  function toggleCheck(id, slot) {
+    const p = patients.find(p => p.id === id);
+    if (!p) return;
+    // Cycle: null → true → false → null
+    if (p[slot] === null) p[slot] = true;
+    else if (p[slot] === true) p[slot] = false;
+    else p[slot] = null;
+    render();
+  }
+
+  function updateNotes(id, val) {
+    const p = patients.find(p => p.id === id);
+    if (p) p.notes = val;
+  }
+
+  // ─── RENDER ───────────────────────────────────────────────
+  function render() {
+    const tbody = document.getElementById('tableBody');
+
+    if (patients.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients added yet. Click <strong>Add Patient</strong> to get started.</p></div></td></tr>`;
+      updateStats();
+      return;
+    }
+
+    tbody.innerHTML = patients.map((p, i) => {
+      const slots = ['morning', 'midday', 'afternoon'];
+      const checks = slots.map(s => {
+        const state = p[s]; // null, true, false
+        let cls = '';
+        let icon = '';
+        if (state === true) { cls = 'checked'; icon = '<span class="tick">✓</span>'; }
+        else if (state === false) { cls = 'missed'; icon = ''; }
+        let wrapStyle = '';
+        if (state === false) wrapStyle = 'background:#fee2e2;border:1.5px solid #fca5a5;';
+        return `
+          <td class="check-cell">
+            <div class="check-wrap ${cls}" style="${wrapStyle}" onclick="toggleCheck(${p.id},'${s}')" title="Click to toggle: ✓ Applied / ✗ Missed / ? Not recorded">
+              ${icon}
+              ${state === false ? '<span style="color:#ef4444;font-weight:700;font-size:15px">✗</span>' : ''}
+            </div>
+          </td>`;
+      }).join('');
+
+      // Status
+      const vals = slots.map(s => p[s]);
+      const filled = vals.filter(v => v !== null);
+      let statusHtml = '';
+      if (filled.length === 0) {
+        statusHtml = '<span class="row-status status-empty">⏳ Pending</span>';
+      } else if (vals.every(v => v === true)) {
+        statusHtml = '<span class="row-status status-all">✅ Complete</span>';
+      } else if (vals.every(v => v === false)) {
+        statusHtml = '<span class="row-status status-none">❌ Not Done</span>';
+      } else {
+        const doneCount = vals.filter(v => v === true).length;
+        statusHtml = `<span class="row-status status-partial">⚠️ ${doneCount}/3 Done</span>`;
+      }
+
+      return `
+        <tr>
+          <td style="color:var(--slate-light);font-size:0.78rem;font-family:'DM Mono',monospace">${i+1}</td>
+          <td class="patient-name">${escHtml(p.name)}</td>
+          <td><span class="room-badge">${escHtml(p.room)}</span></td>
+          ${checks}
+          <td>${statusHtml}</td>
+          <td class="notes-cell">
+            <textarea class="notes-input" rows="1" placeholder="Add note..." onchange="updateNotes(${p.id},this.value)">${escHtml(p.notes||'')}</textarea>
+          </td>
+          <td>
+            <button class="btn-icon" onclick="deletePatient(${p.id})" title="Remove patient">🗑</button>
+          </td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('patientCountLabel').textContent = `(${patients.length} patient${patients.length !== 1 ? 's' : ''})`;
+    updateStats();
+  }
+
+  function updateStats() {
+    const total = patients.length;
+    let allDone = 0, partial = 0, noneDone = 0;
+    const slots = ['morning', 'midday', 'afternoon'];
+
+    patients.forEach(p => {
+      const vals = slots.map(s => p[s]);
+      const filled = vals.filter(v => v !== null);
+      if (filled.length === 0) return;
+      if (vals.every(v => v === true)) allDone++;
+      else if (vals.every(v => v === false)) noneDone++;
+      else partial++;
+    });
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statAll').textContent = allDone;
+    document.getElementById('statPartial').textContent = partial;
+    document.getElementById('statNone').textContent = noneDone;
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Allow Enter key to submit add form
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && document.getElementById('addForm').classList.contains('open')) {
+      addPatient();
+    }
+  });
+</script>
+
+</body>
+</html>
