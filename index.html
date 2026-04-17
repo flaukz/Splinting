@@ -502,7 +502,58 @@
     padding: 3px 9px; border-radius: 5px; white-space: nowrap;
     background: #f1f5f9; color: var(--slate-mid);
     border: 1px solid #cbd5e1;
+    margin: 2px 2px 2px 0;
   }
+  .splint-badges-wrap { display: flex; flex-wrap: wrap; gap: 2px; }
+
+  /* SPLINT CHECKBOX GROUP */
+  .splint-checks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .splint-check-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.82rem; font-weight: 500; cursor: pointer;
+    padding: 6px 12px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    transition: all 0.15s; user-select: none;
+  }
+  .splint-check-label:hover { border-color: var(--teal); background: var(--teal-bg); }
+  .splint-check-label input[type="checkbox"] { display: none; }
+  .splint-check-label.selected { border-color: var(--teal); background: var(--teal-bg); color: var(--teal-dark); font-weight: 700; }
+
+  /* EDIT MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,0.5); backdrop-filter: blur(3px);
+    z-index: 1000; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: 16px; padding: 28px;
+    width: 100%; max-width: 560px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: modalIn 0.18s ease;
+  }
+  @keyframes modalIn { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .modal-header h3 { font-size: 1.05rem; font-weight: 700; color: var(--slate); }
+  .modal-close {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: white;
+    cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;
+    color: var(--slate-light); transition: all 0.15s;
+  }
+  .modal-close:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+  .modal-form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+  .modal-form-group label { font-size: 0.78rem; font-weight: 600; color: var(--slate-light); }
+  .modal-form-group input, .modal-form-group select {
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+    padding: 9px 13px; border: 1.5px solid var(--border); border-radius: 8px;
+    color: var(--slate); background: var(--bg); transition: border-color 0.15s;
+  }
+  .modal-form-group input:focus, .modal-form-group select:focus { outline: none; border-color: var(--teal); background: white; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+  .btn-icon-edit { border-color: var(--border); }
+  .btn-icon-edit:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-bg); }
 
   /* PER-PATIENT COMPLIANCE % column */
   .pct-pill {
@@ -638,15 +689,15 @@
           <option value="ICU 2">ICU 2</option>
         </select>
       </div>
-      <div class="form-group" style="max-width:200px">
-        <label>SPLINT TYPE</label>
-        <select id="newSplint">
-          <option value="Hand Splint">✋ Hand Splint</option>
-          <option value="Foot Splint">🦶 Foot Splint</option>
-          <option value="Hand Rolls">🤛 Hand Rolls</option>
-          <option value="Elbow Gaiters">💪 Elbow Gaiters</option>
-          <option value="Knee Immobilizer">🦵 Knee Immobilizer</option>
-        </select>
+      <div class="form-group" style="min-width:100%">
+        <label>SPLINT TYPE(S) — select one or more</label>
+        <div class="splint-checks" id="newSplintChecks">
+          <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Hand Splint"> ✋ Hand Splint</label>
+          <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Foot Splint"> 🦶 Foot Splint</label>
+          <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Hand Rolls"> 🤛 Hand Rolls</label>
+          <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Elbow Gaiters"> 💪 Elbow Gaiters</label>
+          <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Knee Immobilizer"> 🦵 Knee Immobilizer</label>
+        </div>
       </div>
       <div class="form-group" style="max-width:200px">
         <label>NOTES (optional)</label>
@@ -714,6 +765,51 @@
 
 </main>
 
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✏️ Edit Patient Details</h3>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-form-group">
+      <label>PATIENT FULL NAME</label>
+      <input type="text" id="editName" placeholder="Full name">
+    </div>
+    <div class="modal-form-group">
+      <label>ROOM / BED NUMBER</label>
+      <input type="text" id="editRoom" placeholder="e.g. Room 4B">
+    </div>
+    <div class="modal-form-group">
+      <label>WARD</label>
+      <select id="editWard">
+        <option value="Ward A">Ward A</option>
+        <option value="Ward B">Ward B</option>
+        <option value="ICU 1">ICU 1</option>
+        <option value="ICU 2">ICU 2</option>
+      </select>
+    </div>
+    <div class="modal-form-group">
+      <label>SPLINT TYPE(S) — select one or more</label>
+      <div class="splint-checks" id="editSplintChecks">
+        <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Hand Splint"> ✋ Hand Splint</label>
+        <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Foot Splint"> 🦶 Foot Splint</label>
+        <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Hand Rolls"> 🤛 Hand Rolls</label>
+        <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Elbow Gaiters"> 💪 Elbow Gaiters</label>
+        <label class="splint-check-label" onclick="toggleSplintCheck(this)"><input type="checkbox" value="Knee Immobilizer"> 🦵 Knee Immobilizer</label>
+      </div>
+    </div>
+    <div class="modal-form-group">
+      <label>NOTES (optional)</label>
+      <input type="text" id="editNotes" placeholder="e.g. Right hand only">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ─── DATA ───────────────────────────────────────────────
   let patients = [];
@@ -735,7 +831,36 @@
     'ICU 2':  '🔵',
   };
 
-  function getStorageKey(dateKey) {
+  const SPLINT_ICON = {
+    'Hand Splint':      '✋',
+    'Foot Splint':      '🦶',
+    'Hand Rolls':       '🤛',
+    'Elbow Gaiters':    '💪',
+    'Knee Immobilizer': '🦵',
+  };
+  const ALL_SPLINTS = ['Hand Splint','Foot Splint','Hand Rolls','Elbow Gaiters','Knee Immobilizer'];
+
+  function toggleSplintCheck(label) {
+    // Prevent double-fire from click bubbling
+    const cb = label.querySelector('input[type="checkbox"]');
+    // The click already toggled the checkbox, just sync the style
+    setTimeout(() => {
+      label.classList.toggle('selected', cb.checked);
+    }, 0);
+  }
+
+  function getCheckedSplints(containerId) {
+    return Array.from(document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`))
+      .map(cb => cb.value);
+  }
+
+  function setCheckedSplints(containerId, splints) {
+    const arr = Array.isArray(splints) ? splints : (splints ? [splints] : []);
+    document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach(cb => {
+      cb.checked = arr.includes(cb.value);
+      cb.closest('label').classList.toggle('selected', cb.checked);
+    });
+  }
     return 'splint_audit_' + dateKey;
   }
 
@@ -821,20 +946,22 @@
     const name   = document.getElementById('newName').value.trim();
     const room   = document.getElementById('newRoom').value.trim();
     const ward   = document.getElementById('newWard').value;
-    const splint = document.getElementById('newSplint').value;
+    const splints = getCheckedSplints('newSplintChecks');
     const notes  = document.getElementById('newNotes').value.trim();
     if (!name) { document.getElementById('newName').focus(); return; }
     if (!room) { document.getElementById('newRoom').focus(); return; }
+    if (splints.length === 0) { alert('Please select at least one splint type.'); return; }
 
     patients.push({
       id: Date.now(),
-      name, room, ward, splint, notes,
+      name, room, ward, splints, notes,
       morning: null, midday: null, afternoon: null,
     });
 
     document.getElementById('newName').value = '';
     document.getElementById('newRoom').value = '';
     document.getElementById('newNotes').value = '';
+    setCheckedSplints('newSplintChecks', []);
     document.getElementById('addForm').classList.remove('open');
     render();
     saveData();
@@ -868,6 +995,53 @@
     const p = patients.find(p => p.id === id);
     if (p) p.notes = val;
   }
+
+  // ─── EDIT MODAL ───────────────────────────────────────────
+  let editingId = null;
+
+  function openEditModal(id) {
+    const p = patients.find(p => p.id === id);
+    if (!p) return;
+    editingId = id;
+    document.getElementById('editName').value  = p.name  || '';
+    document.getElementById('editRoom').value  = p.room  || '';
+    document.getElementById('editWard').value  = p.ward  || 'Ward A';
+    document.getElementById('editNotes').value = p.notes || '';
+    // Normalise: old data may have string 'splint', new has array 'splints'
+    const splints = p.splints || (p.splint ? [p.splint] : []);
+    setCheckedSplints('editSplintChecks', splints);
+    document.getElementById('editModal').classList.add('open');
+    document.getElementById('editName').focus();
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('open');
+    editingId = null;
+  }
+
+  function saveEdit() {
+    if (!editingId) return;
+    const p = patients.find(p => p.id === editingId);
+    if (!p) return;
+    const name   = document.getElementById('editName').value.trim();
+    const room   = document.getElementById('editRoom').value.trim();
+    const ward   = document.getElementById('editWard').value;
+    const splints = getCheckedSplints('editSplintChecks');
+    const notes  = document.getElementById('editNotes').value.trim();
+    if (!name) { document.getElementById('editName').focus(); return; }
+    if (!room) { document.getElementById('editRoom').focus(); return; }
+    if (splints.length === 0) { alert('Please select at least one splint type.'); return; }
+    p.name = name; p.room = room; p.ward = ward; p.splints = splints; p.notes = notes;
+    delete p.splint; // clean up old field if present
+    closeEditModal();
+    render();
+    saveData();
+  }
+
+  // Close modal on overlay click
+  document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+  });
 
   // ─── RENDER ───────────────────────────────────────────────
   function render() {
@@ -927,15 +1101,11 @@
       const wardCls  = WARD_CLASS[wardKey] || 'ward-A';
       const wardIcon = WARD_ICON[wardKey]  || '';
 
-      const SPLINT_ICON = {
-        'Hand Splint':       '✋',
-        'Foot Splint':       '🦶',
-        'Hand Rolls':        '🤛',
-        'Elbow Gaiters':     '💪',
-        'Knee Immobilizer':  '🦵',
-      };
-      const splintKey  = p.splint || 'Hand Splint';
-      const splintIcon = SPLINT_ICON[splintKey] || '🩹';
+      // Support both old (string) and new (array) splint field
+      const splintArr = p.splints || (p.splint ? [p.splint] : ['Hand Splint']);
+      const splintBadgesHtml = `<div class="splint-badges-wrap">${splintArr.map(s =>
+        `<span class="splint-badge">${SPLINT_ICON[s] || '🩹'} ${escHtml(s)}</span>`
+      ).join('')}</div>`;
 
       return `
         <tr>
@@ -943,14 +1113,15 @@
           <td class="patient-name">${escHtml(p.name)}</td>
           <td><span class="room-badge">${escHtml(p.room)}</span></td>
           <td><span class="ward-badge ${wardCls}">${wardIcon} ${escHtml(wardKey)}</span></td>
-          <td><span class="splint-badge">${splintIcon} ${escHtml(splintKey)}</span></td>
+          <td>${splintBadgesHtml}</td>
           ${checks}
           <td>${statusHtml}</td>
           <td style="text-align:center">${compPillHtml(vals)}</td>
           <td class="notes-cell">
             <textarea class="notes-input" rows="1" placeholder="Add note..." onchange="updateNotes(${p.id},this.value)">${escHtml(p.notes||'')}</textarea>
           </td>
-          <td>
+          <td style="white-space:nowrap">
+            <button class="btn-icon btn-icon-edit" onclick="openEditModal(${p.id})" title="Edit patient">✏️</button>
             <button class="btn-icon" onclick="deletePatient(${p.id})" title="Remove patient">🗑</button>
           </td>
         </tr>`;
@@ -1097,7 +1268,7 @@
         p.name,
         p.room,
         p.ward    || 'Ward A',
-        p.splint  || 'Hand Splint',
+        (p.splints || (p.splint ? [p.splint] : ['Hand Splint'])).join(', '),
         slotLabel(p.morning),
         slotLabel(p.midday),
         slotLabel(p.afternoon),
