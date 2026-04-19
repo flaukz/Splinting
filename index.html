@@ -865,26 +865,18 @@
 
   // ─── INIT ────────────────────────────────────────────────
   window.onload = function() {
-    // Set today's date display
     const today = new Date();
     const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('todayBadge').textContent = today.toLocaleDateString('en-GB', opts);
 
-    // Set default date to nearest Wednesday
+    // Default to today's actual date — let the user pick the right Wednesday
     const dateInput = document.getElementById('auditDate');
-    const wednesday = getNearestWednesday(today);
-    const formatted = wednesday.toISOString().split('T')[0];
-    dateInput.value = formatted;
+    const yyyy = today.getFullYear();
+    const mm   = String(today.getMonth() + 1).padStart(2, '0');
+    const dd   = String(today.getDate()).padStart(2, '0');
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
     handleDateChange();
   };
-
-  function getNearestWednesday(date) {
-    const d = new Date(date);
-    const day = d.getDay(); // 0=Sun, 3=Wed
-    const diff = (3 - day + 7) % 7;
-    d.setDate(d.getDate() + (diff === 0 ? 0 : diff));
-    return d;
-  }
 
   function handleDateChange() {
     const val = document.getElementById('auditDate').value;
