@@ -568,6 +568,27 @@
   .pct-low  { background: var(--red-light); color: #991b1b; }
   .pct-none { background: var(--bg); color: var(--slate-light); border: 1px dashed #cbd5e1; }
 
+  /* LOADING BAR */
+  #loadingBar {
+    display: none; position: fixed; top: 0; left: 0; right: 0;
+    height: 3px; background: var(--teal-light);
+    z-index: 9999;
+    animation: loadingPulse 1s ease-in-out infinite;
+  }
+  @keyframes loadingPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--teal-dark); color: white;
+    padding: 10px 20px; border-radius: 10px;
+    font-size: 0.85rem; font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0; z-index: 9999; white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
   /* PRINT */
   @media print {
     header { background: var(--teal-dark) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -585,6 +606,8 @@
 </style>
 </head>
 <body>
+<div id="loadingBar"></div>
+<div id="toast"></div>
 
 <header>
   <div class="header-inner">
@@ -812,7 +835,11 @@
 
 <script>
   // ─── DATA ───────────────────────────────────────────────
-  let patients = [];
+  // patients  → permanent list, stored under 'splint_patients'
+  // checks    → per-date audit results, stored under 'splint_audit_YYYY-MM-DD'
+  //             { [patientId]: { morning, midday, afternoon } }
+  let patients    = [];   // permanent patient list
+  let auditChecks = {};   // checks for the currently selected date
   let auditDateKey = '';
   let activeFilter = 'all';
 
@@ -859,22 +886,60 @@
     });
   }
 
-  function getStorageKey(dateKey) {
-    return 'splint_audit_' + dateKey;
+  // ─── SUPABASE CONFIG ────────────────────────────────────
+  const SUPA_URL = 'https://kuitxgcldoykwkhxwzpg.supabase.co';
+  const SUPA_KEY = 'sb_publishable_mgq9KFST-XkQIF-snjQxug_S4BS7qMw';
+  const BASE_HEADERS = {
+    'Content-Type':  'application/json',
+    'apikey':        SUPA_KEY,
+    'Authorization': 'Bearer ' + SUPA_KEY,
+  };
+
+  async function sbFetch(path, opts = {}) {
+    const { headers: extraHeaders, ...restOpts } = opts;
+    const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
+      ...restOpts,
+      headers: {
+        ...BASE_HEADERS,
+        'Prefer': 'return=representation',
+        ...(extraHeaders || {}),
+      }
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+    }
+    const text = await res.text();
+    return text ? JSON.parse(text) : [];
+  }
+
+  // ─── LOADING INDICATOR ───────────────────────────────────
+  function setLoading(on) {
+    document.getElementById('loadingBar').style.display = on ? 'block' : 'none';
   }
 
   // ─── INIT ────────────────────────────────────────────────
-  window.onload = function() {
+  window.onload = async function() {
     const today = new Date();
     const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('todayBadge').textContent = today.toLocaleDateString('en-GB', opts);
 
-    // Default to today's actual date — let the user pick the right Wednesday
     const dateInput = document.getElementById('auditDate');
     const yyyy = today.getFullYear();
     const mm   = String(today.getMonth() + 1).padStart(2, '0');
     const dd   = String(today.getDate()).padStart(2, '0');
     dateInput.value = `${yyyy}-${mm}-${dd}`;
+
+    // Test connection then load
+    try {
+      setLoading(true);
+      await loadPatients();
+      showToast('🟢 Connected to database');
+    } catch(e) {
+      showToast('🔴 Database connection failed: ' + e.message, true);
+    } finally {
+      setLoading(false);
+    }
     handleDateChange();
   };
 
@@ -897,31 +962,153 @@
       label.style.borderColor = '#fcd34d';
     }
 
-    // Load data for this date
     auditDateKey = val;
-    loadData();
+    loadChecks();
   }
 
-  // ─── STORAGE ─────────────────────────────────────────────
+  // ─── SUPABASE: PATIENTS ──────────────────────────────────
+  async function loadPatients() {
+    try {
+      setLoading(true);
+      const data = await sbFetch('patients?select=*&order=created_at.asc');
+      patients = data.map(p => ({
+        id:      p.id,
+        name:    p.name,
+        room:    p.room,
+        ward:    p.ward,
+        splints: Array.isArray(p.splints) ? p.splints : [],
+        notes:   p.notes || ''
+      }));
+    } catch(e) {
+      showToast('⚠️ Could not load patients: ' + e.message, true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function savePatients() {
+    // No-op: patients are saved individually on add/edit/delete
+  }
+
+  async function savePatientToDB(p) {
+    try {
+      setLoading(true);
+      await sbFetch('patients', {
+        method: 'POST',
+        body: JSON.stringify({
+          id:      p.id,
+          name:    p.name,
+          room:    p.room,
+          ward:    p.ward,
+          splints: p.splints,
+          notes:   p.notes
+        })
+      });
+    } catch(e) {
+      showToast('⚠️ Could not save patient: ' + e.message, true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function updatePatientInDB(p) {
+    try {
+      setLoading(true);
+      await sbFetch(`patients?id=eq.${p.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name:    p.name,
+          room:    p.room,
+          ward:    p.ward,
+          splints: p.splints,
+          notes:   p.notes
+        })
+      });
+    } catch(e) {
+      showToast('⚠️ Could not update patient: ' + e.message, true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function deletePatientFromDB(id) {
+    try {
+      setLoading(true);
+      await sbFetch(`patients?id=eq.${id}`, { method: 'DELETE' });
+    } catch(e) {
+      showToast('⚠️ Could not delete patient: ' + e.message, true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ─── SUPABASE: AUDIT CHECKS ──────────────────────────────
+  async function loadChecks() {
+    try {
+      setLoading(true);
+      const data = await sbFetch(`audit_checks?audit_date=eq.${auditDateKey}&select=*`);
+      auditChecks = {};
+      data.forEach(row => {
+        auditChecks[row.patient_id] = {
+          morning:   row.morning,
+          midday:    row.midday,
+          afternoon: row.afternoon
+        };
+      });
+    } catch(e) {
+      showToast('⚠️ Could not load checks: ' + e.message, true);
+      auditChecks = {};
+    } finally {
+      setLoading(false);
+      render();
+    }
+  }
+
+  async function saveChecks() {
+    // Checks are saved individually on each toggle — see toggleCheck()
+  }
+
+  async function upsertCheck(patientId) {
+    const c = auditChecks[patientId] || { morning: null, midday: null, afternoon: null };
+    try {
+      await sbFetch('audit_checks', {
+        method:  'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+        body: JSON.stringify({
+          patient_id: patientId,
+          audit_date: auditDateKey,
+          morning:    c.morning,
+          midday:     c.midday,
+          afternoon:  c.afternoon
+        })
+      });
+    } catch(e) {
+      showToast('⚠️ Could not save check: ' + e.message, true);
+    }
+  }
+
+  // Helper: merged view of patient + current date checks
+  function patientWithChecks(p) {
+    const c = auditChecks[p.id] || { morning: null, midday: null, afternoon: null };
+    return Object.assign({}, p, c);
+  }
+
+  // Save button — now just shows confirmation since everything auto-saves
   function saveData() {
-    if (!auditDateKey) { alert('Please select an audit date first.'); return; }
-    localStorage.setItem(getStorageKey(auditDateKey), JSON.stringify(patients));
-    // Visual feedback
     const btn = event.target;
     const orig = btn.textContent;
-    btn.textContent = '✅ Saved!';
+    btn.textContent = '✅ All saved!';
     btn.style.background = 'var(--green)';
     setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 1800);
   }
 
-  function loadData() {
-    const stored = localStorage.getItem(getStorageKey(auditDateKey));
-    if (stored) {
-      patients = JSON.parse(stored);
-    } else {
-      patients = [];
-    }
-    render();
+  // ─── TOAST NOTIFICATION ──────────────────────────────────
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.background = isError ? '#ef4444' : 'var(--teal-dark)';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
   }
 
   // ─── FORM ─────────────────────────────────────────────────
@@ -933,21 +1120,18 @@
     }
   }
 
-  function addPatient() {
-    const name   = document.getElementById('newName').value.trim();
-    const room   = document.getElementById('newRoom').value.trim();
-    const ward   = document.getElementById('newWard').value;
+  async function addPatient() {
+    const name    = document.getElementById('newName').value.trim();
+    const room    = document.getElementById('newRoom').value.trim();
+    const ward    = document.getElementById('newWard').value;
     const splints = getCheckedSplints('newSplintChecks');
-    const notes  = document.getElementById('newNotes').value.trim();
+    const notes   = document.getElementById('newNotes').value.trim();
     if (!name) { document.getElementById('newName').focus(); return; }
     if (!room) { document.getElementById('newRoom').focus(); return; }
     if (splints.length === 0) { alert('Please select at least one splint type.'); return; }
 
-    patients.push({
-      id: Date.now(),
-      name, room, ward, splints, notes,
-      morning: null, midday: null, afternoon: null,
-    });
+    const newP = { id: Date.now(), name, room, ward, splints, notes };
+    patients.push(newP);
 
     document.getElementById('newName').value = '';
     document.getElementById('newRoom').value = '';
@@ -955,13 +1139,16 @@
     setCheckedSplints('newSplintChecks', []);
     document.getElementById('addForm').classList.remove('open');
     render();
-    saveData();
+    await savePatientToDB(newP);
+    showToast('✅ Patient added and saved to database');
   }
 
-  function deletePatient(id) {
-    if (!confirm('Remove this patient from the audit?')) return;
+  async function deletePatient(id) {
+    if (!confirm('Remove this patient from ALL audit dates?')) return;
     patients = patients.filter(p => p.id !== id);
     render();
+    await deletePatientFromDB(id);
+    showToast('🗑 Patient removed');
   }
 
   function setFilter(ward, btn) {
@@ -972,19 +1159,19 @@
   }
 
   // ─── TOGGLE CHECK ─────────────────────────────────────────
-  function toggleCheck(id, slot) {
-    const p = patients.find(p => p.id === id);
-    if (!p) return;
-    // Cycle: null → true → false → null
-    if (p[slot] === null) p[slot] = true;
-    else if (p[slot] === true) p[slot] = false;
-    else p[slot] = null;
+  async function toggleCheck(id, slot) {
+    if (!auditChecks[id]) auditChecks[id] = { morning: null, midday: null, afternoon: null };
+    const c = auditChecks[id];
+    if (c[slot] === null) c[slot] = true;
+    else if (c[slot] === true) c[slot] = false;
+    else c[slot] = null;
     render();
+    await upsertCheck(id);
   }
 
-  function updateNotes(id, val) {
+  async function updateNotes(id, val) {
     const p = patients.find(p => p.id === id);
-    if (p) p.notes = val;
+    if (p) { p.notes = val; await updatePatientInDB(p); }
   }
 
   // ─── EDIT MODAL ───────────────────────────────────────────
@@ -1010,23 +1197,24 @@
     editingId = null;
   }
 
-  function saveEdit() {
+  async function saveEdit() {
     if (!editingId) return;
     const p = patients.find(p => p.id === editingId);
     if (!p) return;
-    const name   = document.getElementById('editName').value.trim();
-    const room   = document.getElementById('editRoom').value.trim();
-    const ward   = document.getElementById('editWard').value;
+    const name    = document.getElementById('editName').value.trim();
+    const room    = document.getElementById('editRoom').value.trim();
+    const ward    = document.getElementById('editWard').value;
     const splints = getCheckedSplints('editSplintChecks');
-    const notes  = document.getElementById('editNotes').value.trim();
+    const notes   = document.getElementById('editNotes').value.trim();
     if (!name) { document.getElementById('editName').focus(); return; }
     if (!room) { document.getElementById('editRoom').focus(); return; }
     if (splints.length === 0) { alert('Please select at least one splint type.'); return; }
     p.name = name; p.room = room; p.ward = ward; p.splints = splints; p.notes = notes;
-    delete p.splint; // clean up old field if present
+    delete p.splint;
     closeEditModal();
     render();
-    saveData();
+    await updatePatientInDB(p);
+    showToast('✅ Patient details updated');
   }
 
   // Close modal on overlay click
@@ -1055,9 +1243,10 @@
     }
 
     tbody.innerHTML = visible.map((p, i) => {
+      const pw = patientWithChecks(p);   // patient + today's checks merged
       const slots = ['morning', 'midday', 'afternoon'];
       const checks = slots.map(s => {
-        const state = p[s];
+        const state = pw[s];
         let cls = '';
         let icon = '';
         if (state === true) { cls = 'checked'; icon = '<span class="tick">✓</span>'; }
@@ -1074,7 +1263,7 @@
       }).join('');
 
       // Status
-      const vals = slots.map(s => p[s]);
+      const vals = slots.map(s => pw[s]);
       const filled = vals.filter(v => v !== null);
       let statusHtml = '';
       if (filled.length === 0) {
@@ -1139,7 +1328,8 @@
     let totalApplied = 0, totalRecorded = 0;
 
     patients.forEach(p => {
-      const vals = slots.map(s => p[s]);
+      const pw = patientWithChecks(p);
+      const vals = slots.map(s => pw[s]);
       const filled = vals.filter(v => v !== null);
       totalApplied  += vals.filter(v => v === true).length;
       totalRecorded += filled.length;
@@ -1207,8 +1397,9 @@
       }
       let wApplied = 0, wRecorded = 0;
       wp.forEach(p => {
+        const pw = patientWithChecks(p);
         slots.forEach(s => {
-          if (p[s] !== null) { wRecorded++; if (p[s] === true) wApplied++; }
+          if (pw[s] !== null) { wRecorded++; if (pw[s] === true) wApplied++; }
         });
       });
       const pct = wRecorded === 0 ? null : Math.round((wApplied / wRecorded) * 100);
@@ -1248,25 +1439,31 @@
       return `Partial (${vals.filter(v => v === true).length}/3)`;
     };
 
+    // Ward summary uses patientWithChecks too
+    const statusLabelForPatient = p => statusLabel(patientWithChecks(p));
+
     // ── Sheet 1: Full Audit ──────────────────────────────────
     const auditRows = [
       ['SPLINT APPLICATION AUDIT REPORT'],
       [`Audit Date: ${auditDateKey || 'N/A'}`, '', '', '', '', '', '', `Generated: ${new Date().toLocaleDateString('en-GB')}`],
       [],
       ['#', 'Patient Name', 'Room', 'Ward', 'Splint Type', 'Morning (6–8 AM)', 'Midday (10 AM–12 PM)', 'Afternoon (2–4 PM)', 'Status', 'Compliance %', 'Notes'],
-      ...patients.map((p, i) => [
-        i + 1,
-        p.name,
-        p.room,
-        p.ward    || 'Ward A',
-        (p.splints || (p.splint ? [p.splint] : ['Hand Splint'])).join(', '),
-        slotLabel(p.morning),
-        slotLabel(p.midday),
-        slotLabel(p.afternoon),
-        statusLabel(p),
-        (() => { const vals=[p.morning,p.midday,p.afternoon]; const rec=vals.filter(v=>v!==null); return rec.length===0?'—':Math.round((vals.filter(v=>v===true).length/3)*100)+'%'; })(),
-        p.notes || ''
-      ])
+      ...patients.map((p, i) => {
+        const pw = patientWithChecks(p);
+        return [
+          i + 1,
+          p.name,
+          p.room,
+          p.ward    || 'Ward A',
+          (p.splints || (p.splint ? [p.splint] : ['Hand Splint'])).join(', '),
+          slotLabel(pw.morning),
+          slotLabel(pw.midday),
+          slotLabel(pw.afternoon),
+          statusLabel(pw),
+          (() => { const vals=[pw.morning,pw.midday,pw.afternoon]; const rec=vals.filter(v=>v!==null); return rec.length===0?'—':Math.round((vals.filter(v=>v===true).length/3)*100)+'%'; })(),
+          p.notes || ''
+        ];
+      })
     ];
 
     const ws1 = XLSX.utils.aoa_to_sheet(auditRows);
@@ -1296,7 +1493,7 @@
       const total = wp.length;
       let complete = 0, partial = 0, notDone = 0, pending = 0;
       wp.forEach(p => {
-        const s = statusLabel(p);
+        const s = statusLabelForPatient(p);
         if (s === 'Complete') complete++;
         else if (s.startsWith('Partial')) partial++;
         else if (s === 'Not Done') notDone++;
@@ -1310,7 +1507,7 @@
     const total = patients.length;
     let tComplete = 0, tPartial = 0, tNotDone = 0, tPending = 0;
     patients.forEach(p => {
-      const s = statusLabel(p);
+      const s = statusLabelForPatient(p);
       if (s === 'Complete') tComplete++;
       else if (s.startsWith('Partial')) tPartial++;
       else if (s === 'Not Done') tNotDone++;
