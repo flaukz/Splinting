@@ -553,52 +553,17 @@
   .modal-form-group input:focus, .modal-form-group select:focus { outline: none; border-color: var(--teal); background: white; }
   .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
 
-  /* STICKY ACTIONS COLUMN */
-  thead th:last-child,
-  tbody td:last-child {
-    position: sticky;
-    right: 0;
-    background: white;
-    box-shadow: -3px 0 8px rgba(0,0,0,0.06);
-    z-index: 2;
+  /* SIMPLE ROW ACTION BUTTONS */
+  .act-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 7px 13px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: white; font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    transition: all 0.15s; color: var(--slate); margin: 2px;
+    min-height: 36px; /* easier to tap on mobile */
   }
-  thead th:last-child { background: var(--slate); }
-  tbody tr:hover td:last-child { background: #f8fafc; }
-
-  /* ROW ACTIONS DROPDOWN */
-  .row-actions { position: relative; display: inline-block; }
-  .row-actions-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 6px 12px; border-radius: 8px;
-    border: 1.5px solid var(--border); background: white;
-    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
-    color: var(--slate); cursor: pointer; transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .row-actions-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-bg); }
-  .row-actions-menu {
-    display: none; position: absolute; right: 0; top: calc(100% + 6px);
-    background: white; border: 1.5px solid var(--border);
-    border-radius: 10px; box-shadow: var(--shadow-lg);
-    min-width: 180px; z-index: 100;
-    overflow: hidden;
-    animation: menuIn 0.12s ease;
-  }
-  @keyframes menuIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform:none; } }
-  .row-actions-menu.open { display: block; }
-  .row-menu-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 16px; font-size: 0.85rem; font-weight: 500;
-    cursor: pointer; transition: background 0.12s; color: var(--slate);
-    border: none; background: none; width: 100%; text-align: left;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .row-menu-item:hover { background: var(--bg); }
-  .row-menu-item.danger { color: var(--red); }
-  .row-menu-item.danger:hover { background: var(--red-light); }
-  .row-menu-item.warn { color: #92400e; }
-  .row-menu-item.warn:hover { background: var(--amber-light); }
-  .row-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
+  .act-edit:hover    { border-color: var(--teal); color: var(--teal); background: var(--teal-bg); }
+  .act-archive:hover { border-color: #f59e0b; color: #92400e; background: var(--amber-light); }
 
   /* DANGER ZONE in modal */
   .modal-danger-zone {
@@ -1374,30 +1339,10 @@
     if (e.target === this) closeEditModal();
   });
 
-  // ─── ROW ACTIONS MENU ────────────────────────────────────
-  function toggleRowMenu(id) {
-    const menu = document.getElementById('ram_' + id);
-    if (!menu) return;
-    const isOpen = menu.classList.contains('open');
-    closeAllMenus();
-    if (!isOpen) menu.classList.add('open');
-  }
-
-  function closeAllMenus() {
-    document.querySelectorAll('.row-actions-menu.open').forEach(m => m.classList.remove('open'));
-  }
-
   async function archivePatientFromRow(id) {
     if (!confirm('Move this patient to the archive? You can restore them later.')) return;
-    editingId = id; // borrow editingId for archivePatient()
     await archivePatient(id);
-    editingId = null;
   }
-
-  // Close menus when clicking outside
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.row-actions')) closeAllMenus();
-  });
 
   // ─── ARCHIVE PANEL ────────────────────────────────────────
   function toggleArchivePanel() {
@@ -1515,16 +1460,9 @@
           <td class="notes-cell">
             <textarea class="notes-input" rows="1" placeholder="Add note..." onchange="updateNotes('${p.id}',this.value)">${escHtml(p.notes||'')}</textarea>
           </td>
-          <td style="text-align:center; padding: 8px 12px;">
-            <div class="row-actions" id="ra_${p.id}">
-              <button class="row-actions-btn" onclick="toggleRowMenu('${p.id}')">⚙ Actions ▾</button>
-              <div class="row-actions-menu" id="ram_${p.id}">
-                <button class="row-menu-item" onclick="openEditModal('${p.id}'); closeAllMenus()">✏️ Edit Details</button>
-                <div class="row-menu-divider"></div>
-                <button class="row-menu-item warn" onclick="archivePatientFromRow('${p.id}'); closeAllMenus()">📦 Archive</button>
-                <button class="row-menu-item danger" onclick="openEditModal('${p.id}'); closeAllMenus()">🗑 Delete…</button>
-              </div>
-            </div>
+          <td style="padding: 8px 12px; white-space:nowrap;">
+            <button class="act-btn act-edit"    onclick="openEditModal('${p.id}')">✏️ Edit</button>
+            <button class="act-btn act-archive" onclick="archivePatientFromRow('${p.id}')">📦</button>
           </td>
         </tr>`;
     }).join('');
