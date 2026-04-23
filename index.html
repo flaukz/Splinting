@@ -556,6 +556,85 @@
   .btn-icon-edit { border-color: var(--border); }
   .btn-icon-edit:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-bg); }
 
+  /* DANGER ZONE in modal */
+  .modal-danger-zone {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1.5px dashed #fca5a5;
+    display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .btn-archive {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 8px; border: 1.5px solid #fcd34d;
+    background: var(--amber-light); color: #92400e;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-archive:hover { background: #fef08a; border-color: #f59e0b; }
+  .btn-delete-hard {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 8px; border: 1.5px solid #fca5a5;
+    background: var(--red-light); color: var(--red);
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-delete-hard:hover { background: #fecaca; border-color: var(--red); }
+
+  /* ARCHIVE PANEL */
+  .archive-panel {
+    background: white; border: 1.5px solid var(--border);
+    border-radius: 14px; margin-bottom: 24px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .archive-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; cursor: pointer;
+    background: #fffbeb; border-bottom: 1.5px solid transparent;
+    transition: background 0.15s;
+  }
+  .archive-header:hover { background: #fef3c7; }
+  .archive-header.open { border-bottom-color: var(--border); }
+  .archive-header-left { display: flex; align-items: center; gap: 10px; }
+  .archive-title { font-size: 0.9rem; font-weight: 700; color: #92400e; }
+  .archive-count {
+    background: var(--amber-light); color: #92400e;
+    font-size: 0.72rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px; border: 1px solid #fcd34d;
+  }
+  .archive-chevron { color: #92400e; font-size: 14px; transition: transform 0.2s; }
+  .archive-chevron.open { transform: rotate(180deg); }
+  .archive-body { display: none; padding: 16px 20px; }
+  .archive-body.open { display: block; }
+  .archive-empty { font-size: 0.85rem; color: var(--slate-light); text-align: center; padding: 20px; }
+  .archive-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 10px;
+    border: 1.5px solid var(--border); margin-bottom: 8px;
+    background: var(--bg); flex-wrap: wrap;
+  }
+  .archive-row:last-child { margin-bottom: 0; }
+  .archive-row-info { flex: 1; min-width: 180px; }
+  .archive-row-name { font-weight: 700; font-size: 0.88rem; color: var(--slate); }
+  .archive-row-meta { font-size: 0.75rem; color: var(--slate-light); margin-top: 2px; }
+  .btn-restore {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 7px;
+    border: 1.5px solid #6ee7b7; background: var(--green-light);
+    color: #065f46; font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-restore:hover { background: #a7f3d0; border-color: #10b981; }
+  .btn-delete-archive {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 7px;
+    border: 1.5px solid #fca5a5; background: var(--red-light);
+    color: var(--red); font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-delete-archive:hover { background: #fecaca; }
+
   /* PER-PATIENT COMPLIANCE % column */
   .pct-pill {
     display: inline-flex; align-items: center; justify-content: center;
@@ -742,6 +821,19 @@
     <button class="filter-tab tab-ICU2" onclick="setFilter('ICU 2',this)">🔵 ICU 2</button>
   </div>
 
+  <!-- ARCHIVE PANEL -->
+  <div class="archive-panel" id="archivePanel" style="display:none">
+    <div class="archive-header" id="archiveHeader" onclick="toggleArchivePanel()">
+      <div class="archive-header-left">
+        <span>📦</span>
+        <span class="archive-title">Archived Patients</span>
+        <span class="archive-count" id="archiveCount">0</span>
+      </div>
+      <span class="archive-chevron" id="archiveChevron">▼</span>
+    </div>
+    <div class="archive-body" id="archiveBody"></div>
+  </div>
+
   <!-- TABLE -->
   <div class="table-wrapper">
     <table id="auditTable">
@@ -831,6 +923,10 @@
       <button class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveEdit()">💾 Save Changes</button>
     </div>
+    <div class="modal-danger-zone">
+      <button class="btn-archive" onclick="archivePatient()">📦 Move to Archive</button>
+      <button class="btn-delete-hard" onclick="hardDeletePatient()">🗑 Permanently Delete</button>
+    </div>
   </div>
 </div>
 
@@ -840,6 +936,7 @@
   // checks    → per-date audit results, stored under 'splint_audit_YYYY-MM-DD'
   //             { [patientId]: { morning, midday, afternoon } }
   let patients    = [];   // permanent patient list
+  let archivedPatients = []; // archived patients
   let auditChecks = {};   // checks for the currently selected date
   let auditDateKey = '';
   let activeFilter = 'all';
@@ -944,18 +1041,46 @@
   async function loadPatients() {
     const { data, error } = await sb.from('patients').select('*').order('created_at', { ascending: true });
     if (error) { showToast('⚠️ Could not load patients: ' + error.message, true); return; }
-    patients = (data || []).map(p => ({
-      id:      p.id,
-      name:    p.name,
-      room:    p.room,
-      ward:    p.ward,
-      splints: Array.isArray(p.splints) ? p.splints : [],
-      notes:   p.notes || ''
+    const all = (data || []).map(p => ({
+      id:       p.id,
+      name:     p.name,
+      room:     p.room,
+      ward:     p.ward,
+      splints:  Array.isArray(p.splints) ? p.splints : [],
+      notes:    p.notes || '',
+      archived: p.archived || false
     }));
+    patients         = all.filter(p => !p.archived);
+    archivedPatients = all.filter(p => p.archived);
     showToast('🟢 Connected — ' + patients.length + ' patient(s) loaded');
+    renderArchive();
   }
 
   async function savePatients() { /* no-op */ }
+
+  async function archivePatientInDB(id) {
+    setLoading(true);
+    const { error } = await sb.from('patients').update({ archived: true }).eq('id', id);
+    setLoading(false);
+    if (error) { showToast('⚠️ Could not archive patient: ' + error.message, true); return false; }
+    return true;
+  }
+
+  async function restorePatientInDB(id) {
+    setLoading(true);
+    const { error } = await sb.from('patients').update({ archived: false }).eq('id', id);
+    setLoading(false);
+    if (error) { showToast('⚠️ Could not restore patient: ' + error.message, true); return false; }
+    return true;
+  }
+
+  async function hardDeleteInDB(id) {
+    setLoading(true);
+    const { error } = await sb.from('patients').delete().eq('id', id);
+    setLoading(false);
+    if (error) { showToast('⚠️ Could not delete patient: ' + error.message, true); return false; }
+    return true;
+  }
 
   async function updatePatientInDB(p) {
     setLoading(true);
@@ -964,14 +1089,6 @@
     }).eq('id', p.id);
     setLoading(false);
     if (error) showToast('⚠️ Could not update patient: ' + error.message, true);
-  }
-
-  async function deletePatientFromDB(id) {
-    setLoading(true);
-    const { error } = await sb.from('patients').delete().eq('id', id);
-    setLoading(false);
-    if (error) showToast('⚠️ Could not delete patient: ' + error.message, true);
-    else showToast('🗑 Patient removed');
   }
 
   // ─── SUPABASE: AUDIT CHECKS ──────────────────────────────
@@ -1081,11 +1198,65 @@
   }
 
   async function deletePatient(id) {
-    if (!confirm('Remove this patient from ALL audit dates?')) return;
-    patients = patients.filter(p => p.id !== id);
+    // Row delete button → archive (safe)
+    if (!confirm('Move this patient to the archive? You can restore them later.')) return;
+    await archivePatient(id);
+  }
+
+  async function archivePatient(id) {
+    // Called from modal danger zone OR row delete
+    const pid = id || editingId;
+    if (!pid) return;
+    const p = patients.find(p => p.id === pid);
+    if (!p) return;
+    const ok = await archivePatientInDB(pid);
+    if (!ok) return;
+    patients = patients.filter(p => p.id !== pid);
+    p.archived = true;
+    archivedPatients.push(p);
+    closeEditModal();
     render();
-    await deletePatientFromDB(id);
-    showToast('🗑 Patient removed');
+    renderArchive();
+    showToast('📦 Patient moved to archive');
+  }
+
+  async function hardDeletePatient() {
+    if (!editingId) return;
+    const p = patients.find(p => p.id === editingId) || archivedPatients.find(p => p.id === editingId);
+    const name = p ? p.name : 'this patient';
+    if (!confirm(`Permanently delete ${name}? This cannot be undone and will remove all their audit history.`)) return;
+    const ok = await hardDeleteInDB(editingId);
+    if (!ok) return;
+    patients         = patients.filter(p => p.id !== editingId);
+    archivedPatients = archivedPatients.filter(p => p.id !== editingId);
+    closeEditModal();
+    render();
+    renderArchive();
+    showToast('🗑 Patient permanently deleted');
+  }
+
+  async function restorePatient(id) {
+    const p = archivedPatients.find(p => p.id === id);
+    if (!p) return;
+    const ok = await restorePatientInDB(id);
+    if (!ok) return;
+    archivedPatients = archivedPatients.filter(p => p.id !== id);
+    p.archived = false;
+    patients.push(p);
+    render();
+    renderArchive();
+    showToast('✅ Patient restored to active list');
+  }
+
+  async function hardDeleteArchived(id) {
+    const p = archivedPatients.find(p => p.id === id);
+    const name = p ? p.name : 'this patient';
+    if (!confirm(`Permanently delete ${name}? This cannot be undone.`)) return;
+    const ok = await hardDeleteInDB(id);
+    if (!ok) return;
+    archivedPatients = archivedPatients.filter(p => p.id !== id);
+    renderArchive();
+    showToast('🗑 Patient permanently deleted');
   }
 
   function setFilter(ward, btn) {
@@ -1158,6 +1329,44 @@
   document.getElementById('editModal').addEventListener('click', function(e) {
     if (e.target === this) closeEditModal();
   });
+
+  // ─── ARCHIVE PANEL ────────────────────────────────────────
+  function toggleArchivePanel() {
+    const body    = document.getElementById('archiveBody');
+    const chevron = document.getElementById('archiveChevron');
+    const header  = document.getElementById('archiveHeader');
+    body.classList.toggle('open');
+    chevron.classList.toggle('open');
+    header.classList.toggle('open');
+  }
+
+  function renderArchive() {
+    const panel  = document.getElementById('archivePanel');
+    const body   = document.getElementById('archiveBody');
+    const count  = document.getElementById('archiveCount');
+
+    count.textContent = archivedPatients.length;
+    panel.style.display = archivedPatients.length > 0 ? 'block' : 'none';
+
+    if (archivedPatients.length === 0) {
+      body.innerHTML = '';
+      return;
+    }
+
+    body.innerHTML = archivedPatients.map(p => {
+      const wardIcon = WARD_ICON[p.ward] || '';
+      const splintStr = (p.splints || []).join(', ') || '—';
+      return `
+        <div class="archive-row">
+          <div class="archive-row-info">
+            <div class="archive-row-name">${escHtml(p.name)}</div>
+            <div class="archive-row-meta">${escHtml(p.room)} · ${wardIcon} ${escHtml(p.ward)} · ${escHtml(splintStr)}</div>
+          </div>
+          <button class="btn-restore" onclick="restorePatient('${p.id}')">↩ Restore</button>
+          <button class="btn-delete-archive" onclick="hardDeleteArchived('${p.id}')">🗑 Delete</button>
+        </div>`;
+    }).join('');
+  }
 
   // ─── RENDER ───────────────────────────────────────────────
   function render() {
