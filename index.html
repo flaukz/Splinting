@@ -6,6 +6,7 @@
 <title>Splint Application Audit</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --teal: #0d9488;
@@ -615,7 +616,7 @@
       <div class="header-icon">🩹</div>
       <div class="header-title">
         <h1>Splint Application Audit</h1>
-        <p>Weekly Wednesday Compliance Tracker · Nursing &amp; HCA</p>
+        <p>Daily Splint Compliance Tracker · Monday – Friday · Nursing &amp; HCA</p>
       </div>
     </div>
     <div class="header-right">
@@ -630,9 +631,9 @@
 
   <!-- WEEK SELECTOR -->
   <div class="week-selector">
-    <label>📅 Audit Wednesday:</label>
+    <label>📅 Audit Date:</label>
     <input type="date" id="auditDate" onchange="handleDateChange()">
-    <div class="wednesday-label" id="wednesdayLabel">Select a Wednesday</div>
+    <div class="wednesday-label" id="wednesdayLabel">Select an audit date</div>
   </div>
 
   <!-- STATS -->
@@ -889,29 +890,7 @@
   // ─── SUPABASE CONFIG ────────────────────────────────────
   const SUPA_URL = 'https://kuitxgcldoykwkhxwzpg.supabase.co';
   const SUPA_KEY = 'sb_publishable_mgq9KFST-XkQIF-snjQxug_S4BS7qMw';
-  const BASE_HEADERS = {
-    'Content-Type':  'application/json',
-    'apikey':        SUPA_KEY,
-    'Authorization': 'Bearer ' + SUPA_KEY,
-  };
-
-  async function sbFetch(path, opts = {}) {
-    const { headers: extraHeaders, ...restOpts } = opts;
-    const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
-      ...restOpts,
-      headers: {
-        ...BASE_HEADERS,
-        'Prefer': 'return=representation',
-        ...(extraHeaders || {}),
-      }
-    });
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
-    }
-    const text = await res.text();
-    return text ? JSON.parse(text) : [];
-  }
+  const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
   // ─── LOADING INDICATOR ───────────────────────────────────
   function setLoading(on) {
@@ -930,16 +909,9 @@
     const dd   = String(today.getDate()).padStart(2, '0');
     dateInput.value = `${yyyy}-${mm}-${dd}`;
 
-    // Test connection then load
-    try {
-      setLoading(true);
-      await loadPatients();
-      showToast('🟢 Connected to database');
-    } catch(e) {
-      showToast('🔴 Database connection failed: ' + e.message, true);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    await loadPatients();
+    setLoading(false);
     handleDateChange();
   };
 
@@ -947,18 +919,20 @@
     const val = document.getElementById('auditDate').value;
     if (!val) return;
     const d = new Date(val + 'T00:00:00');
+    const dayNum  = d.getDay(); // 0=Sun, 1=Mon ... 5=Fri, 6=Sat
     const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
-    const label = document.getElementById('wednesdayLabel');
+    const label   = document.getElementById('wednesdayLabel');
+    const isWeekday = dayNum >= 1 && dayNum <= 5;
 
-    if (dayName === 'Wednesday') {
-      label.textContent = '✅ ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    if (isWeekday) {
+      label.textContent = '✅ ' + d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
       label.style.background = 'var(--green-light)';
-      label.style.color = '#065f46';
+      label.style.color      = '#065f46';
       label.style.borderColor = '#6ee7b7';
     } else {
-      label.textContent = '⚠️ Not a Wednesday (' + dayName + ')';
-      label.style.background = 'var(--amber-light)';
-      label.style.color = '#92400e';
+      label.textContent = '⚠️ Weekend selected (' + dayName + ') — splinting is Mon–Fri only';
+      label.style.background  = 'var(--amber-light)';
+      label.style.color       = '#92400e';
       label.style.borderColor = '#fcd34d';
     }
 
@@ -968,123 +942,73 @@
 
   // ─── SUPABASE: PATIENTS ──────────────────────────────────
   async function loadPatients() {
-    try {
-      setLoading(true);
-      const data = await sbFetch('patients?select=*&order=created_at.asc');
-      patients = data.map(p => ({
-        id:      p.id,
-        name:    p.name,
-        room:    p.room,
-        ward:    p.ward,
-        splints: Array.isArray(p.splints) ? p.splints : [],
-        notes:   p.notes || ''
-      }));
-    } catch(e) {
-      showToast('⚠️ Could not load patients: ' + e.message, true);
-    } finally {
-      setLoading(false);
-    }
+    const { data, error } = await sb.from('patients').select('*').order('created_at', { ascending: true });
+    if (error) { showToast('⚠️ Could not load patients: ' + error.message, true); return; }
+    patients = (data || []).map(p => ({
+      id:      p.id,
+      name:    p.name,
+      room:    p.room,
+      ward:    p.ward,
+      splints: Array.isArray(p.splints) ? p.splints : [],
+      notes:   p.notes || ''
+    }));
+    showToast('🟢 Connected — ' + patients.length + ' patient(s) loaded');
   }
 
-  async function savePatients() {
-    // No-op: patients are saved individually on add/edit/delete
-  }
+  async function savePatients() { /* no-op */ }
 
   async function savePatientToDB(p) {
-    try {
-      setLoading(true);
-      await sbFetch('patients', {
-        method: 'POST',
-        body: JSON.stringify({
-          id:      p.id,
-          name:    p.name,
-          room:    p.room,
-          ward:    p.ward,
-          splints: p.splints,
-          notes:   p.notes
-        })
-      });
-    } catch(e) {
-      showToast('⚠️ Could not save patient: ' + e.message, true);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const { error } = await sb.from('patients').insert({
+      id: p.id, name: p.name, room: p.room, ward: p.ward, splints: p.splints, notes: p.notes || ''
+    });
+    setLoading(false);
+    if (error) showToast('⚠️ Could not save patient: ' + error.message, true);
+    else showToast('✅ Patient saved to database');
   }
 
   async function updatePatientInDB(p) {
-    try {
-      setLoading(true);
-      await sbFetch(`patients?id=eq.${p.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          name:    p.name,
-          room:    p.room,
-          ward:    p.ward,
-          splints: p.splints,
-          notes:   p.notes
-        })
-      });
-    } catch(e) {
-      showToast('⚠️ Could not update patient: ' + e.message, true);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const { error } = await sb.from('patients').update({
+      name: p.name, room: p.room, ward: p.ward, splints: p.splints, notes: p.notes || ''
+    }).eq('id', p.id);
+    setLoading(false);
+    if (error) showToast('⚠️ Could not update patient: ' + error.message, true);
   }
 
   async function deletePatientFromDB(id) {
-    try {
-      setLoading(true);
-      await sbFetch(`patients?id=eq.${id}`, { method: 'DELETE' });
-    } catch(e) {
-      showToast('⚠️ Could not delete patient: ' + e.message, true);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const { error } = await sb.from('patients').delete().eq('id', id);
+    setLoading(false);
+    if (error) showToast('⚠️ Could not delete patient: ' + error.message, true);
+    else showToast('🗑 Patient removed');
   }
 
   // ─── SUPABASE: AUDIT CHECKS ──────────────────────────────
   async function loadChecks() {
-    try {
-      setLoading(true);
-      const data = await sbFetch(`audit_checks?audit_date=eq.${auditDateKey}&select=*`);
-      auditChecks = {};
-      data.forEach(row => {
-        auditChecks[row.patient_id] = {
-          morning:   row.morning,
-          midday:    row.midday,
-          afternoon: row.afternoon
-        };
-      });
-    } catch(e) {
-      showToast('⚠️ Could not load checks: ' + e.message, true);
-      auditChecks = {};
-    } finally {
-      setLoading(false);
-      render();
-    }
+    setLoading(true);
+    const { data, error } = await sb.from('audit_checks').select('*').eq('audit_date', auditDateKey);
+    setLoading(false);
+    auditChecks = {};
+    if (error) showToast('⚠️ Could not load checks: ' + error.message, true);
+    else (data || []).forEach(row => {
+      auditChecks[row.patient_id] = { morning: row.morning, midday: row.midday, afternoon: row.afternoon };
+    });
+    render();
   }
 
-  async function saveChecks() {
-    // Checks are saved individually on each toggle — see toggleCheck()
-  }
+  async function saveChecks() { /* no-op */ }
 
   async function upsertCheck(patientId) {
     const c = auditChecks[patientId] || { morning: null, midday: null, afternoon: null };
-    try {
-      await sbFetch('audit_checks', {
-        method:  'POST',
-        headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
-        body: JSON.stringify({
-          patient_id: patientId,
-          audit_date: auditDateKey,
-          morning:    c.morning,
-          midday:     c.midday,
-          afternoon:  c.afternoon
-        })
-      });
-    } catch(e) {
-      showToast('⚠️ Could not save check: ' + e.message, true);
-    }
+    const { error } = await sb.from('audit_checks').upsert({
+      patient_id: patientId,
+      audit_date: auditDateKey,
+      morning:    c.morning,
+      midday:     c.midday,
+      afternoon:  c.afternoon
+    }, { onConflict: 'patient_id,audit_date' });
+    if (error) showToast('⚠️ Could not save check: ' + error.message, true);
   }
 
   // Helper: merged view of patient + current date checks
