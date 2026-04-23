@@ -957,16 +957,6 @@
 
   async function savePatients() { /* no-op */ }
 
-  async function savePatientToDB(p) {
-    setLoading(true);
-    const { error } = await sb.from('patients').insert({
-      id: p.id, name: p.name, room: p.room, ward: p.ward, splints: p.splints, notes: p.notes || ''
-    });
-    setLoading(false);
-    if (error) showToast('⚠️ Could not save patient: ' + error.message, true);
-    else showToast('✅ Patient saved to database');
-  }
-
   async function updatePatientInDB(p) {
     setLoading(true);
     const { error } = await sb.from('patients').update({
@@ -1054,8 +1044,32 @@
     if (!room) { document.getElementById('newRoom').focus(); return; }
     if (splints.length === 0) { alert('Please select at least one splint type.'); return; }
 
-    const newP = { id: Date.now(), name, room, ward, splints, notes };
-    patients.push(newP);
+    // Disable button to prevent double-submit
+    const addBtn = document.querySelector('#addForm .btn-primary');
+    if (addBtn) { addBtn.disabled = true; addBtn.textContent = 'Saving…'; }
+
+    setLoading(true);
+    const { data, error } = await sb.from('patients').insert({
+      name, room, ward, splints, notes: notes || ''
+    }).select().single();
+    setLoading(false);
+
+    if (addBtn) { addBtn.disabled = false; addBtn.textContent = 'Add Patient'; }
+
+    if (error) {
+      showToast('⚠️ Could not save patient: ' + error.message, true);
+      return; // don't add to local list if DB failed
+    }
+
+    // Use the ID Supabase generated
+    patients.push({
+      id:      data.id,
+      name:    data.name,
+      room:    data.room,
+      ward:    data.ward,
+      splints: Array.isArray(data.splints) ? data.splints : [],
+      notes:   data.notes || ''
+    });
 
     document.getElementById('newName').value = '';
     document.getElementById('newRoom').value = '';
@@ -1063,8 +1077,7 @@
     setCheckedSplints('newSplintChecks', []);
     document.getElementById('addForm').classList.remove('open');
     render();
-    await savePatientToDB(newP);
-    showToast('✅ Patient added and saved to database');
+    showToast('✅ Patient saved to database');
   }
 
   async function deletePatient(id) {
