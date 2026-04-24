@@ -823,6 +823,10 @@
         <input type="text" id="newName" placeholder="e.g. John Smith">
       </div>
       <div class="form-group" style="max-width:160px">
+        <label>MRN NUMBER</label>
+        <input type="text" id="newMrn" placeholder="e.g. 1234567">
+      </div>
+      <div class="form-group" style="max-width:160px">
         <label>ROOM / BED NUMBER</label>
         <input type="text" id="newRoom" placeholder="e.g. Room 4B">
       </div>
@@ -884,6 +888,7 @@
         <tr>
           <th style="width:36px">#</th>
           <th>Patient Name</th>
+          <th>MRN</th>
           <th>Room</th>
           <th>Ward</th>
           <th>Splint Type</th>
@@ -907,7 +912,7 @@
       </thead>
       <tbody id="tableBody">
         <tr>
-          <td colspan="12">
+          <td colspan="13">
             <div class="empty-state">
               <div class="empty-icon">🩹</div>
               <p>No patients added yet. Click <strong>Add Patient</strong> to get started.</p>
@@ -1006,6 +1011,18 @@
     'Elbow Gaiters':    '💪',
     'Knee Immobilizer': '🦵',
   };
+
+  // ─── CONFIDENTIALITY MASKING ─────────────────────────────
+  // Display: first name only + last 3 digits of MRN
+  function maskName(fullName) {
+    if (!fullName) return '—';
+    return fullName.trim().split(/\s+/)[0]; // first name only
+  }
+  function maskMrn(mrn) {
+    if (!mrn) return '—';
+    const clean = mrn.trim();
+    return '***' + clean.slice(-3);
+  }
   const ALL_SPLINTS = ['Hand Splint','Foot Splint','Hand Rolls','Elbow Gaiters','Knee Immobilizer'];
 
   function toggleSplintCheck(el) {
@@ -1087,6 +1104,7 @@
     const all = (data || []).map(p => ({
       id:       p.id,
       name:     p.name,
+      mrn:      p.mrn || '',
       room:     p.room,
       ward:     p.ward,
       splints:  Array.isArray(p.splints) ? p.splints : [],
@@ -1128,7 +1146,7 @@
   async function updatePatientInDB(p) {
     setLoading(true);
     const { error } = await sb.from('patients').update({
-      name: p.name, room: p.room, ward: p.ward, splints: p.splints, notes: p.notes || ''
+      name: p.name, mrn: p.mrn || '', room: p.room, ward: p.ward, splints: p.splints, notes: p.notes || ''
     }).eq('id', p.id);
     setLoading(false);
     if (error) showToast('⚠️ Could not update patient: ' + error.message, true);
@@ -1196,43 +1214,42 @@
 
   async function addPatient() {
     const name    = document.getElementById('newName').value.trim();
+    const mrn     = document.getElementById('newMrn').value.trim();
     const room    = document.getElementById('newRoom').value.trim();
     const ward    = document.getElementById('newWard').value;
     const splints = getCheckedSplints('newSplintChecks');
     const notes   = document.getElementById('newNotes').value.trim();
     if (!name) { document.getElementById('newName').focus(); return; }
+    if (!mrn)  { document.getElementById('newMrn').focus();  return; }
     if (!room) { document.getElementById('newRoom').focus(); return; }
     if (splints.length === 0) { alert('Please select at least one splint type.'); return; }
 
-    // Disable button to prevent double-submit
     const addBtn = document.querySelector('#addForm .btn-primary');
     if (addBtn) { addBtn.disabled = true; addBtn.textContent = 'Saving…'; }
 
     setLoading(true);
     const { data, error } = await sb.from('patients').insert({
-      name, room, ward, splints, notes: notes || ''
+      name, mrn, room, ward, splints, notes: notes || ''
     }).select().single();
     setLoading(false);
 
     if (addBtn) { addBtn.disabled = false; addBtn.textContent = 'Add Patient'; }
 
-    if (error) {
-      showToast('⚠️ Could not save patient: ' + error.message, true);
-      return; // don't add to local list if DB failed
-    }
+    if (error) { showToast('⚠️ Could not save patient: ' + error.message, true); return; }
 
-    // Use the ID Supabase generated
     patients.push({
       id:      data.id,
       name:    data.name,
+      mrn:     data.mrn || '',
       room:    data.room,
       ward:    data.ward,
       splints: Array.isArray(data.splints) ? data.splints : [],
       notes:   data.notes || ''
     });
 
-    document.getElementById('newName').value = '';
-    document.getElementById('newRoom').value = '';
+    document.getElementById('newName').value  = '';
+    document.getElementById('newMrn').value   = '';
+    document.getElementById('newRoom').value  = '';
     document.getElementById('newNotes').value = '';
     setCheckedSplints('newSplintChecks', []);
     document.getElementById('addForm').classList.remove('open');
@@ -1484,7 +1501,8 @@
       return `
         <tr>
           <td style="color:var(--slate-light);font-size:0.78rem;font-family:'DM Mono',monospace">${i+1}</td>
-          <td class="patient-name">${escHtml(p.name)}</td>
+          <td class="patient-name">${escHtml(maskName(p.name))}</td>
+          <td><span class="room-badge" style="font-family:'DM Mono',monospace;background:#f1f5f9;color:#475569;border-color:#cbd5e1">${escHtml(maskMrn(p.mrn))}</span></td>
           <td><span class="room-badge">${escHtml(p.room)}</span></td>
           <td><span class="ward-badge ${wardCls}">${wardIcon} ${escHtml(wardKey)}</span></td>
           <td>${splintBadgesHtml}</td>
@@ -1500,19 +1518,23 @@
           </td>
         </tr>
         <tr class="edit-row" id="editrow_${p.id}" style="display:none;">
-          <td colspan="12" style="padding:0;">
+          <td colspan="13" style="padding:0;">
             <div class="inline-edit-box">
-              <div class="inline-edit-title">✏️ Editing: <strong>${escHtml(p.name)}</strong></div>
+              <div class="inline-edit-title">✏️ Editing: <strong>${escHtml(maskName(p.name))}</strong> <span style="color:var(--slate-light);font-size:0.8rem">(${escHtml(maskMrn(p.mrn))})</span></div>
               <div class="inline-edit-fields">
                 <div class="ief-group">
-                  <label>Patient Name</label>
+                  <label>Full Patient Name</label>
                   <input type="text" id="ief_name_${p.id}" value="${escHtml(p.name)}" placeholder="Full name">
                 </div>
-                <div class="ief-group">
+                <div class="ief-group" style="max-width:160px">
+                  <label>MRN Number</label>
+                  <input type="text" id="ief_mrn_${p.id}" value="${escHtml(p.mrn||'')}" placeholder="e.g. 1234567">
+                </div>
+                <div class="ief-group" style="max-width:160px">
                   <label>Room / Bed</label>
                   <input type="text" id="ief_room_${p.id}" value="${escHtml(p.room)}" placeholder="e.g. Room 4B">
                 </div>
-                <div class="ief-group">
+                <div class="ief-group" style="max-width:150px">
                   <label>Ward</label>
                   <select id="ief_ward_${p.id}">
                     <option value="Ward A" ${wardKey==='Ward A'?'selected':''}>🟣 Ward A</option>
@@ -1681,19 +1703,20 @@
       ['SPLINT APPLICATION AUDIT REPORT'],
       [`Audit Date: ${auditDateKey || 'N/A'}`, '', '', '', '', '', '', `Generated: ${new Date().toLocaleDateString('en-GB')}`],
       [],
-      ['#', 'Patient Name', 'Room', 'Ward', 'Splint Type', 'Morning (6–8 AM)', 'Midday (10 AM–12 PM)', 'Afternoon (2–4 PM)', 'Status', 'Compliance %', 'Notes'],
+      ['#', 'Patient Name (Full)', 'MRN', 'Room', 'Ward', 'Splint Type', 'Morning (6–8 AM)', 'Midday (10 AM–12 PM)', 'Afternoon (2–4 PM)', 'Status', 'Compliance %', 'Notes'],
       ...patients.map((p, i) => {
         const pw = patientWithChecks(p);
         return [
           i + 1,
           p.name,
+          p.mrn || '',
           p.room,
           p.ward    || 'Ward A',
-          (p.splints || (p.splint ? [p.splint] : ['Hand Splint'])).join(', '),
+          (p.splints || []).join(', '),
           slotLabel(pw.morning),
           slotLabel(pw.midday),
           slotLabel(pw.afternoon),
-          statusLabel(pw),
+          statusLabelForPatient(p),
           (() => { const vals=[pw.morning,pw.midday,pw.afternoon]; const rec=vals.filter(v=>v!==null); return rec.length===0?'—':Math.round((vals.filter(v=>v===true).length/3)*100)+'%'; })(),
           p.notes || ''
         ];
@@ -1790,6 +1813,7 @@
       const p = patients.find(p => p.id === id);
       if (!p) return;
       const name = document.getElementById('ief_name_' + id).value.trim();
+      const mrn  = document.getElementById('ief_mrn_'  + id).value.trim();
       const room = document.getElementById('ief_room_' + id).value.trim();
       const ward = document.getElementById('ief_ward_' + id).value;
       const splintChecks = document.querySelectorAll(`#editrow_${id} input[type="checkbox"]:checked`);
@@ -1797,7 +1821,7 @@
       if (!name) { document.getElementById('ief_name_' + id).focus(); return; }
       if (!room) { document.getElementById('ief_room_' + id).focus(); return; }
       if (splints.length === 0) { alert('Please select at least one splint type.'); return; }
-      p.name = name; p.room = room; p.ward = ward; p.splints = splints;
+      p.name = name; p.mrn = mrn; p.room = room; p.ward = ward; p.splints = splints;
       const row = document.getElementById('editrow_' + id);
       if (row) row.style.display = 'none';
       render();
