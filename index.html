@@ -530,6 +530,7 @@
   .modal {
     background: white; border-radius: 16px; padding: 28px;
     width: 100%; max-width: 560px;
+    max-height: 90vh; overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0,0,0,0.2);
     animation: modalIn 0.18s ease;
   }
@@ -1461,8 +1462,8 @@
             <textarea class="notes-input" rows="1" placeholder="Add note..." onchange="updateNotes('${p.id}',this.value)">${escHtml(p.notes||'')}</textarea>
           </td>
           <td style="padding: 8px 12px; white-space:nowrap;">
-            <button class="act-btn act-edit"    onclick="openEditModal('${p.id}')">✏️ Edit</button>
-            <button class="act-btn act-archive" onclick="archivePatientFromRow('${p.id}')">📦</button>
+            <button class="act-btn act-edit" data-action="edit" data-id="${p.id}">✏️ Edit</button>
+            <button class="act-btn act-archive" data-action="archive" data-id="${p.id}">📦</button>
           </td>
         </tr>`;
     }).join('');
@@ -1690,6 +1691,16 @@
     const filename = `Splint_Audit_${auditDateKey || 'export'}.xlsx`;
     XLSX.writeFile(wb, filename);
   }
+
+  // ─── TABLE EVENT DELEGATION (reliable on mobile) ─────────
+  document.getElementById('tableBody').addEventListener('click', async function(e) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id     = btn.dataset.id;
+    if (action === 'edit')    openEditModal(id);
+    if (action === 'archive') archivePatientFromRow(id);
+  });
 
   // Allow Enter key to submit add form
   document.addEventListener('keydown', function(e) {
