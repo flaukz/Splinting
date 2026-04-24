@@ -561,10 +561,43 @@
     background: white; font-family: 'DM Sans', sans-serif;
     font-size: 0.82rem; font-weight: 600; cursor: pointer;
     transition: all 0.15s; color: var(--slate); margin: 2px;
-    min-height: 36px; /* easier to tap on mobile */
+    min-height: 36px;
   }
   .act-edit:hover    { border-color: var(--teal); color: var(--teal); background: var(--teal-bg); }
   .act-archive:hover { border-color: #f59e0b; color: #92400e; background: var(--amber-light); }
+
+  /* INLINE EDIT BOX */
+  .inline-edit-box {
+    background: var(--teal-bg);
+    border-top: 2px solid var(--teal);
+    border-bottom: 2px solid var(--teal);
+    padding: 20px 24px;
+  }
+  .inline-edit-title {
+    font-size: 0.88rem; color: var(--teal-dark); margin-bottom: 16px;
+  }
+  .inline-edit-fields {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+  }
+  .ief-group {
+    display: flex; flex-direction: column; gap: 5px;
+    min-width: 160px; flex: 1;
+  }
+  .ief-full { flex-basis: 100%; min-width: 100%; }
+  .ief-group label {
+    font-size: 0.75rem; font-weight: 700; color: var(--teal-dark); text-transform: uppercase;
+  }
+  .ief-group input, .ief-group select {
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+    padding: 9px 12px; border: 1.5px solid var(--teal-border);
+    border-radius: 8px; background: white; color: var(--slate);
+  }
+  .ief-group input:focus, .ief-group select:focus {
+    outline: none; border-color: var(--teal);
+  }
+  .inline-edit-actions {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
 
   /* DANGER ZONE in modal */
   .modal-danger-zone {
@@ -1465,6 +1498,46 @@
             <button class="act-btn act-edit" data-action="edit" data-id="${p.id}">✏️ Edit</button>
             <button class="act-btn act-archive" data-action="archive" data-id="${p.id}">📦</button>
           </td>
+        </tr>
+        <tr class="edit-row" id="editrow_${p.id}" style="display:none;">
+          <td colspan="12" style="padding:0;">
+            <div class="inline-edit-box">
+              <div class="inline-edit-title">✏️ Editing: <strong>${escHtml(p.name)}</strong></div>
+              <div class="inline-edit-fields">
+                <div class="ief-group">
+                  <label>Patient Name</label>
+                  <input type="text" id="ief_name_${p.id}" value="${escHtml(p.name)}" placeholder="Full name">
+                </div>
+                <div class="ief-group">
+                  <label>Room / Bed</label>
+                  <input type="text" id="ief_room_${p.id}" value="${escHtml(p.room)}" placeholder="e.g. Room 4B">
+                </div>
+                <div class="ief-group">
+                  <label>Ward</label>
+                  <select id="ief_ward_${p.id}">
+                    <option value="Ward A" ${wardKey==='Ward A'?'selected':''}>🟣 Ward A</option>
+                    <option value="Ward B" ${wardKey==='Ward B'?'selected':''}>🟡 Ward B</option>
+                    <option value="ICU 1"  ${wardKey==='ICU 1' ?'selected':''}>🔴 ICU 1</option>
+                    <option value="ICU 2"  ${wardKey==='ICU 2' ?'selected':''}>🔵 ICU 2</option>
+                  </select>
+                </div>
+                <div class="ief-group ief-full">
+                  <label>Splint Type(s)</label>
+                  <div class="splint-checks">
+                    ${['Hand Splint','Foot Splint','Hand Rolls','Elbow Gaiters','Knee Immobilizer'].map(st => `
+                    <div class="splint-check-label ${splintArr.includes(st)?'selected':''}" onclick="toggleSplintCheck(this)">
+                      <input type="checkbox" value="${st}" ${splintArr.includes(st)?'checked':''}> ${SPLINT_ICON[st]||'🩹'} ${st}
+                    </div>`).join('')}
+                  </div>
+                </div>
+              </div>
+              <div class="inline-edit-actions">
+                <button class="btn btn-primary" data-action="save-edit" data-id="${p.id}">💾 Save</button>
+                <button class="btn btn-outline" data-action="cancel-edit" data-id="${p.id}">Cancel</button>
+                <button class="btn-delete-hard" data-action="hard-delete" data-id="${p.id}" style="margin-left:auto">🗑 Delete Patient</button>
+              </div>
+            </div>
+          </td>
         </tr>`;
     }).join('');
 
@@ -1692,14 +1765,60 @@
     XLSX.writeFile(wb, filename);
   }
 
-  // ─── TABLE EVENT DELEGATION (reliable on mobile) ─────────
+  // ─── TABLE EVENT DELEGATION ──────────────────────────────
   document.getElementById('tableBody').addEventListener('click', async function(e) {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const action = btn.dataset.action;
     const id     = btn.dataset.id;
-    if (action === 'edit')    openEditModal(id);
-    if (action === 'archive') archivePatientFromRow(id);
+
+    if (action === 'edit') {
+      // Close any other open edit rows first
+      document.querySelectorAll('.edit-row').forEach(r => r.style.display = 'none');
+      const row = document.getElementById('editrow_' + id);
+      if (row) row.style.display = '';
+      return;
+    }
+
+    if (action === 'cancel-edit') {
+      const row = document.getElementById('editrow_' + id);
+      if (row) row.style.display = 'none';
+      return;
+    }
+
+    if (action === 'save-edit') {
+      const p = patients.find(p => p.id === id);
+      if (!p) return;
+      const name = document.getElementById('ief_name_' + id).value.trim();
+      const room = document.getElementById('ief_room_' + id).value.trim();
+      const ward = document.getElementById('ief_ward_' + id).value;
+      const splintChecks = document.querySelectorAll(`#editrow_${id} input[type="checkbox"]:checked`);
+      const splints = Array.from(splintChecks).map(cb => cb.value);
+      if (!name) { document.getElementById('ief_name_' + id).focus(); return; }
+      if (!room) { document.getElementById('ief_room_' + id).focus(); return; }
+      if (splints.length === 0) { alert('Please select at least one splint type.'); return; }
+      p.name = name; p.room = room; p.ward = ward; p.splints = splints;
+      const row = document.getElementById('editrow_' + id);
+      if (row) row.style.display = 'none';
+      render();
+      await updatePatientInDB(p);
+      showToast('✅ Patient updated');
+      return;
+    }
+
+    if (action === 'archive') {
+      if (!confirm('Move this patient to the archive? You can restore them later.')) return;
+      await archivePatient(id);
+      return;
+    }
+
+    if (action === 'hard-delete') {
+      const p = patients.find(p => p.id === id);
+      if (!confirm(`Permanently delete ${p ? p.name : 'this patient'}? This cannot be undone.`)) return;
+      editingId = id;
+      await hardDeletePatient();
+      return;
+    }
   });
 
   // Allow Enter key to submit add form
