@@ -1,4 +1,4 @@
-const CACHE = 'splint-audit-v1';
+const CACHE = 'splint-audit-v2';
 
 // App shell files to cache for offline access
 const PRECACHE = [
