@@ -19,249 +19,251 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --teal-light: #14b8a6; --teal-dark: #0f766e;
-    --teal-bg: #f0fdfa; --teal-border: #99f6e4;
-    --slate: #1e293b; --slate-light: #64748b;
-    --bg: #f8fafc;
-    --red: #ef4444; --red-light: #fee2e2;
-    --green: #10b981; --green-light: #d1fae5;
-    --amber: #f59e0b; --amber-light: #fef3c7;
-    --border: #e2e8f0;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05);
+    --teal-light:#14b8a6; --teal-dark:#0f766e;
+    --teal-bg:#f0fdfa; --teal-border:#99f6e4;
+    --slate:#1e293b; --slate-light:#64748b;
+    --bg:#f8fafc;
+    --red:#ef4444; --red-light:#fee2e2;
+    --green:#10b981; --green-light:#d1fae5;
+    --amber:#f59e0b; --amber-light:#fef3c7;
+    --border:#e2e8f0;
+    --shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.05);
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--slate); min-height:100vh; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--slate);min-height:100vh;}
 
-  /* ── HEADER ── */
-  header { background:linear-gradient(135deg,var(--teal-dark) 0%,var(--teal) 60%,var(--teal-light) 100%); color:white; box-shadow:0 4px 20px rgba(13,148,136,0.3); }
-  .header-inner { max-width:1200px; margin:0 auto; padding:22px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-  .header-left { display:flex; align-items:center; gap:14px; }
-  .header-icon { width:46px; height:46px; background:rgba(255,255,255,0.2); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1.5px solid rgba(255,255,255,0.3); }
-  .header-title h1 { font-size:1.35rem; font-weight:700; }
-  .header-title p  { font-size:0.78rem; opacity:0.85; margin-top:2px; }
-  .header-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .week-badge { background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); border-radius:8px; padding:6px 14px; font-size:0.78rem; font-weight:500; font-family:'DM Mono',monospace; }
+  /* HEADER */
+  header{background:linear-gradient(135deg,var(--teal-dark) 0%,#0d9488 60%,var(--teal-light) 100%);color:white;box-shadow:0 4px 20px rgba(13,148,136,0.3);}
+  .header-inner{max-width:1200px;margin:0 auto;padding:22px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .header-left{display:flex;align-items:center;gap:14px;}
+  .header-icon{width:46px;height:46px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;border:1.5px solid rgba(255,255,255,0.3);}
+  .header-title h1{font-size:1.35rem;font-weight:700;}
+  .header-title p{font-size:0.78rem;opacity:0.85;margin-top:2px;}
+  .header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .week-badge{background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:8px;padding:6px 14px;font-size:0.78rem;font-weight:500;font-family:'DM Mono',monospace;}
 
-  /* ── MAIN ── */
-  main { max-width:1200px; margin:0 auto; padding:24px 20px; }
+  /* MAIN */
+  main{max-width:1200px;margin:0 auto;padding:24px 20px;}
 
-  /* ── BUTTONS ── */
-  .btn { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; border-radius:8px; border:none; font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:600; cursor:pointer; transition:all 0.15s; }
-  .btn-primary { background:var(--teal); color:white; }
-  .btn-primary:hover { background:var(--teal-dark); }
-  .btn-primary:disabled { opacity:0.55; cursor:not-allowed; }
-  .btn-outline { background:white; color:var(--slate); border:1.5px solid var(--border); }
-  .btn-outline:hover { border-color:var(--teal); color:var(--teal); }
-  .btn-red { display:inline-flex; align-items:center; gap:6px; padding:9px 14px; border-radius:8px; border:1.5px solid #fca5a5; background:var(--red-light); color:var(--red); font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:600; cursor:pointer; transition:all 0.15s; }
-  .btn-red:hover { background:#fecaca; }
+  /* BUTTONS */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:0.84rem;font-weight:600;cursor:pointer;transition:all 0.15s;}
+  .btn-primary{background:#0d9488;color:white;}
+  .btn-primary:hover{background:var(--teal-dark);}
+  .btn-primary:disabled{opacity:0.55;cursor:not-allowed;}
+  .btn-outline{background:white;color:var(--slate);border:1.5px solid var(--border);}
+  .btn-outline:hover{border-color:#0d9488;color:#0d9488;}
+  .btn-red{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:8px;border:1.5px solid #fca5a5;background:var(--red-light);color:var(--red);font-family:'DM Sans',sans-serif;font-size:0.84rem;font-weight:600;cursor:pointer;transition:all 0.15s;}
+  .btn-red:hover{background:#fecaca;}
 
-  /* ── DATE SELECTOR ── */
-  .week-selector { background:white; border:1.5px solid var(--border); border-radius:12px; padding:14px 20px; margin-bottom:18px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; box-shadow:var(--shadow); }
-  .week-selector label { font-size:0.84rem; font-weight:600; color:var(--slate-light); white-space:nowrap; }
-  .week-selector input[type="date"] { font-family:'DM Mono',monospace; font-size:0.86rem; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px; color:var(--slate); background:var(--bg); cursor:pointer; }
-  .week-selector input[type="date"]:focus { outline:none; border-color:var(--teal); }
-  .day-label { font-size:0.79rem; font-weight:600; padding:5px 12px; border-radius:6px; border:1px solid; font-family:'DM Mono',monospace; }
-  .day-ok   { background:var(--green-light); color:#065f46; border-color:#6ee7b7; }
-  .day-warn { background:var(--amber-light); color:#92400e; border-color:#fcd34d; }
+  /* DATE */
+  .week-selector{background:white;border:1.5px solid var(--border);border-radius:12px;padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow);}
+  .week-selector label{font-size:0.84rem;font-weight:600;color:var(--slate-light);white-space:nowrap;}
+  .week-selector input[type="date"]{font-family:'DM Mono',monospace;font-size:0.86rem;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;color:var(--slate);background:var(--bg);cursor:pointer;}
+  .week-selector input[type="date"]:focus{outline:none;border-color:#0d9488;}
+  .day-label{font-size:0.79rem;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid;font-family:'DM Mono',monospace;}
+  .day-ok{background:var(--green-light);color:#065f46;border-color:#6ee7b7;}
+  .day-warn{background:var(--amber-light);color:#92400e;border-color:#fcd34d;}
 
-  /* ── STATS ── */
-  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:18px; }
-  .stat-card { background:white; border:1.5px solid var(--border); border-radius:12px; padding:14px 18px; box-shadow:var(--shadow); }
-  .stat-num   { font-size:1.75rem; font-weight:700; font-family:'DM Mono',monospace; line-height:1; }
-  .stat-label { font-size:0.73rem; color:var(--slate-light); margin-top:4px; font-weight:500; }
-  .stat-total .stat-num   { color:var(--slate); }
-  .stat-done .stat-num    { color:var(--green); }
-  .stat-partial .stat-num { color:var(--amber); }
-  .stat-missing .stat-num { color:var(--red); }
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .stat-card{background:white;border:1.5px solid var(--border);border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);}
+  .stat-num{font-size:1.75rem;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
+  .stat-label{font-size:0.73rem;color:var(--slate-light);margin-top:4px;font-weight:500;}
+  .stat-total .stat-num{color:var(--slate);}
+  .stat-done .stat-num{color:var(--green);}
+  .stat-partial .stat-num{color:var(--amber);}
+  .stat-missing .stat-num{color:var(--red);}
 
-  /* ── COMPLIANCE BANNER ── */
-  .compliance-banner { background:white; border:1.5px solid var(--border); border-radius:14px; padding:18px 22px; margin-bottom:18px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; box-shadow:var(--shadow); }
-  .compliance-main { display:flex; align-items:center; gap:14px; flex:1; min-width:200px; }
-  .compliance-dial { position:relative; width:78px; height:78px; flex-shrink:0; }
-  .compliance-dial svg { width:78px; height:78px; transform:rotate(-90deg); }
-  .compliance-dial circle { fill:none; stroke-width:8; }
-  .dial-bg   { stroke:#e2e8f0; }
-  .dial-fill { stroke-linecap:round; transition:stroke-dashoffset 0.6s ease, stroke 0.4s; }
-  .dial-pct  { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:0.95rem; font-weight:700; }
-  .compliance-text h3 { font-size:0.9rem; font-weight:700; }
-  .compliance-text p  { font-size:0.76rem; color:var(--slate-light); margin-top:3px; }
-  .compliance-rating  { display:inline-flex; align-items:center; gap:6px; font-size:0.76rem; font-weight:700; padding:4px 12px; border-radius:20px; margin-top:6px; }
-  .rating-excellent { background:var(--green-light); color:#065f46; }
-  .rating-good      { background:#d1fae5; color:#065f46; }
-  .rating-partial   { background:var(--amber-light); color:#92400e; }
-  .rating-poor      { background:var(--red-light); color:#991b1b; }
-  .ward-grid { display:flex; gap:10px; flex-wrap:wrap; flex:2; }
-  .wc-card   { flex:1; min-width:100px; border-radius:10px; padding:10px 12px; border:1.5px solid var(--border); background:var(--bg); }
-  .wc-name   { font-size:0.73rem; font-weight:700; margin-bottom:4px; }
-  .wc-pct    { font-size:1.25rem; font-weight:700; font-family:'DM Mono',monospace; line-height:1; }
-  .wc-bar-wrap { margin-top:5px; height:4px; border-radius:99px; background:#e2e8f0; overflow:hidden; }
-  .wc-bar    { height:100%; border-radius:99px; transition:width 0.5s ease; }
-  .wc-sub    { font-size:0.68rem; color:var(--slate-light); margin-top:3px; }
+  /* COMPLIANCE BANNER */
+  .compliance-banner{background:white;border:1.5px solid var(--border);border-radius:14px;padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;box-shadow:var(--shadow);}
+  .compliance-main{display:flex;align-items:center;gap:14px;flex:1;min-width:200px;}
+  .compliance-dial{position:relative;width:78px;height:78px;flex-shrink:0;}
+  .compliance-dial svg{width:78px;height:78px;transform:rotate(-90deg);}
+  .compliance-dial circle{fill:none;stroke-width:8;}
+  .dial-bg{stroke:#e2e8f0;}
+  .dial-fill{stroke-linecap:round;transition:stroke-dashoffset 0.6s ease,stroke 0.4s;}
+  .dial-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:0.95rem;font-weight:700;}
+  .compliance-text h3{font-size:0.9rem;font-weight:700;}
+  .compliance-text p{font-size:0.76rem;color:var(--slate-light);margin-top:3px;}
+  .compliance-rating{display:inline-flex;align-items:center;gap:6px;font-size:0.76rem;font-weight:700;padding:4px 12px;border-radius:20px;margin-top:6px;}
+  .rating-excellent{background:var(--green-light);color:#065f46;}
+  .rating-good{background:#d1fae5;color:#065f46;}
+  .rating-partial{background:var(--amber-light);color:#92400e;}
+  .rating-poor{background:var(--red-light);color:#991b1b;}
+  .ward-grid{display:flex;gap:10px;flex-wrap:wrap;flex:2;}
+  .wc-card{flex:1;min-width:100px;border-radius:10px;padding:10px 12px;border:1.5px solid var(--border);background:var(--bg);}
+  .wc-name{font-size:0.73rem;font-weight:700;margin-bottom:4px;}
+  .wc-pct{font-size:1.25rem;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
+  .wc-bar-wrap{margin-top:5px;height:4px;border-radius:99px;background:#e2e8f0;overflow:hidden;}
+  .wc-bar{height:100%;border-radius:99px;transition:width 0.5s ease;}
+  .wc-sub{font-size:0.68rem;color:var(--slate-light);margin-top:3px;}
 
-  /* ── LEGEND ── */
-  .legend { background:white; border:1.5px solid var(--border); border-radius:12px; padding:11px 18px; margin-bottom:16px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; box-shadow:var(--shadow); }
-  .legend-title { font-size:0.76rem; font-weight:600; color:var(--slate-light); }
-  .legend-item { display:flex; align-items:center; gap:6px; font-size:0.78rem; font-weight:500; }
-  .leg-dot { width:14px; height:14px; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:9px; color:white; flex-shrink:0; }
-  .dot-g { background:var(--green); }
-  .dot-r { background:#fca5a5; border:1.5px solid var(--red); }
-  .dot-e { background:var(--bg); border:1.5px dashed #cbd5e1; }
+  /* LEGEND */
+  .legend{background:white;border:1.5px solid var(--border);border-radius:12px;padding:11px 18px;margin-bottom:16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;box-shadow:var(--shadow);}
+  .legend-title{font-size:0.76rem;font-weight:600;color:var(--slate-light);}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:500;}
+  .leg-dot{width:14px;height:14px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:white;flex-shrink:0;}
+  .dot-g{background:var(--green);}
+  .dot-r{background:#fca5a5;border:1.5px solid var(--red);}
+  .dot-e{background:var(--bg);border:1.5px dashed #cbd5e1;}
 
-  /* ── TOP BAR ── */
-  .top-bar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
-  .section-title { font-size:0.95rem; font-weight:600; display:flex; align-items:center; gap:8px; }
-  .section-title span { color:var(--slate-light); font-weight:400; font-size:0.82rem; }
+  /* TOP BAR */
+  .top-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+  .section-title{font-size:0.95rem;font-weight:600;display:flex;align-items:center;gap:8px;}
+  .section-title span{color:var(--slate-light);font-weight:400;font-size:0.82rem;}
 
-  /* ── FILTER TABS ── */
-  .filter-tabs { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
-  .filter-label { font-size:0.78rem; font-weight:600; color:var(--slate-light); }
-  .filter-tab { padding:5px 14px; border-radius:20px; font-size:0.78rem; font-weight:600; border:1.5px solid var(--border); background:white; cursor:pointer; transition:all 0.15s; color:var(--slate-light); }
-  .filter-tab:hover { border-color:var(--teal); color:var(--teal); }
-  .filter-tab.active { background:var(--slate); color:white; border-color:var(--slate); }
-  .filter-tab.active.tab-A    { background:#5b21b6; border-color:#5b21b6; }
-  .filter-tab.active.tab-B    { background:#b45309; border-color:#b45309; }
-  .filter-tab.active.tab-ICU1 { background:#991b1b; border-color:#991b1b; }
-  .filter-tab.active.tab-ICU2 { background:#075985; border-color:#075985; }
+  /* FILTER TABS */
+  .filter-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+  .filter-label{font-size:0.78rem;font-weight:600;color:var(--slate-light);}
+  .filter-tab{padding:5px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;border:1.5px solid var(--border);background:white;cursor:pointer;transition:all 0.15s;color:var(--slate-light);}
+  .filter-tab:hover{border-color:#0d9488;color:#0d9488;}
+  .filter-tab.active{background:var(--slate);color:white;border-color:var(--slate);}
+  .filter-tab.active.tab-A{background:#5b21b6;border-color:#5b21b6;}
+  .filter-tab.active.tab-B{background:#b45309;border-color:#b45309;}
+  .filter-tab.active.tab-ICU1{background:#991b1b;border-color:#991b1b;}
+  .filter-tab.active.tab-ICU2{background:#075985;border-color:#075985;}
 
-  /* ── ADD FORM ── */
-  .add-form { background:white; border:1.5px solid var(--teal-border); border-radius:14px; padding:22px; margin-bottom:18px; box-shadow:0 0 0 4px rgba(20,184,166,0.06); display:none; }
-  .add-form.open { display:block; }
-  .add-form h3 { font-size:0.92rem; font-weight:700; margin-bottom:14px; color:var(--teal-dark); }
-  .form-row { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
-  .form-group { display:flex; flex-direction:column; gap:4px; flex:1; min-width:140px; }
-  .form-group label { font-size:0.72rem; font-weight:700; color:var(--slate-light); text-transform:uppercase; letter-spacing:0.3px; }
-  .form-group input, .form-group select { font-family:'DM Sans',sans-serif; font-size:0.86rem; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px; color:var(--slate); background:var(--bg); transition:border-color 0.15s; }
-  .form-group input:focus, .form-group select:focus { outline:none; border-color:var(--teal); background:white; }
-  .form-group input::placeholder { color:#94a3b8; }
+  /* ADD FORM */
+  .add-form{background:white;border:1.5px solid var(--teal-border);border-radius:14px;padding:22px;margin-bottom:18px;box-shadow:0 0 0 4px rgba(20,184,166,0.06);display:none;}
+  .add-form.open{display:block;}
+  .add-form h3{font-size:0.92rem;font-weight:700;margin-bottom:14px;color:var(--teal-dark);}
+  .form-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
+  .form-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px;}
+  .form-group label{font-size:0.72rem;font-weight:700;color:var(--slate-light);text-transform:uppercase;letter-spacing:0.3px;}
+  .form-group input,.form-group select{font-family:'DM Sans',sans-serif;font-size:0.86rem;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;color:var(--slate);background:var(--bg);transition:border-color 0.15s;}
+  .form-group input:focus,.form-group select:focus{outline:none;border-color:#0d9488;background:white;}
+  .form-group input::placeholder{color:#94a3b8;}
 
-  /* ── SPLINT CHIPS ── */
-  .splint-checks { display:flex; flex-wrap:wrap; gap:7px; margin-top:3px; }
-  .splint-chip { display:inline-flex; align-items:center; gap:5px; font-size:0.8rem; font-weight:500; cursor:pointer; padding:6px 12px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); transition:all 0.15s; user-select:none; }
-  .splint-chip:hover   { border-color:var(--teal); background:var(--teal-bg); }
-  .splint-chip input[type="checkbox"] { display:none; }
-  .splint-chip.selected { border-color:var(--teal); background:var(--teal-bg); color:var(--teal-dark); font-weight:700; }
+  /* SPLINT BUILDER — per-splint laterality */
+  .splint-builder{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .splint-builder-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);flex-wrap:wrap;transition:border-color 0.15s;}
+  .splint-builder-row.active{border-color:#0d9488;background:var(--teal-bg);}
+  .splint-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;min-width:160px;user-select:none;}
+  .splint-toggle input[type="checkbox"]{display:none;}
+  .splint-check-box{width:20px;height:20px;border-radius:5px;border:1.5px solid #cbd5e1;background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;font-size:12px;color:white;}
+  .splint-toggle input:checked~.splint-check-box,.splint-builder-row.active .splint-check-box{background:#0d9488;border-color:#0d9488;}
+  .splint-name{font-size:0.84rem;font-weight:600;color:var(--slate);}
+  .lat-pills{display:flex;gap:5px;flex-shrink:0;}
+  .lat-pill{padding:4px 11px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all 0.15s;color:var(--slate-light);user-select:none;opacity:0.45;}
+  .splint-builder-row.active .lat-pill{opacity:1;}
+  .lat-pill.sel-L{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd;}
+  .lat-pill.sel-R{background:#fef3c7;color:#92400e;border-color:#fcd34d;}
+  .lat-pill.sel-B{background:#e0f2fe;color:#075985;border-color:#7dd3fc;}
 
-  /* ── BADGES ── */
-  .ward-badge { font-size:0.72rem; font-weight:700; padding:3px 9px; border-radius:5px; white-space:nowrap; }
-  .ward-A    { background:#ede9fe; color:#5b21b6; border:1px solid #c4b5fd; }
-  .ward-B    { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
-  .ward-ICU1 { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
-  .ward-ICU2 { background:#e0f2fe; color:#075985; border:1px solid #7dd3fc; }
-  .room-badge { font-family:'DM Mono',monospace; font-size:0.75rem; font-weight:500; background:var(--teal-bg); color:var(--teal-dark); padding:2px 8px; border-radius:5px; border:1px solid var(--teal-border); white-space:nowrap; }
-  .mrn-badge  { font-family:'DM Mono',monospace; font-size:0.75rem; font-weight:500; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:5px; border:1px solid #cbd5e1; white-space:nowrap; letter-spacing:1px; }
-  .splint-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.7rem; font-weight:600; padding:2px 7px; border-radius:5px; white-space:nowrap; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; margin:1px; }
-  .splint-wrap { display:flex; flex-wrap:wrap; }
+  /* BADGES */
+  .ward-badge{font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:5px;white-space:nowrap;}
+  .ward-A{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd;}
+  .ward-B{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+  .ward-ICU1{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;}
+  .ward-ICU2{background:#e0f2fe;color:#075985;border:1px solid #7dd3fc;}
+  .room-badge{font-family:'DM Mono',monospace;font-size:0.75rem;font-weight:500;background:var(--teal-bg);color:var(--teal-dark);padding:2px 8px;border-radius:5px;border:1px solid var(--teal-border);white-space:nowrap;}
+  .mrn-badge{font-family:'DM Mono',monospace;font-size:0.75rem;font-weight:500;background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:5px;border:1px solid #cbd5e1;white-space:nowrap;letter-spacing:1px;}
 
-  /* LATERALITY BADGE */
-  .lat-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.72rem; font-weight:700; padding:2px 9px; border-radius:20px; white-space:nowrap; }
-  .lat-L    { background:#ede9fe; color:#5b21b6; border:1px solid #c4b5fd; }
-  .lat-R    { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
-  .lat-B    { background:#e0f2fe; color:#075985; border:1px solid #7dd3fc; }
+  /* SPLINT DISPLAY BADGE */
+  .splint-entry{display:inline-flex;align-items:center;gap:4px;font-size:0.7rem;font-weight:600;padding:2px 7px 2px 5px;border-radius:5px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;margin:2px;white-space:nowrap;}
+  .splint-lat{font-size:0.65rem;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:2px;}
+  .sl-L{background:#ede9fe;color:#5b21b6;}
+  .sl-R{background:#fef3c7;color:#92400e;}
+  .sl-B{background:#e0f2fe;color:#075985;}
+  .splint-wrap{display:flex;flex-wrap:wrap;}
 
-  /* LATERALITY SELECTOR in form */
-  .lat-select { display:flex; gap:6px; margin-top:3px; }
-  .lat-opt { display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:7px 14px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.15s; user-select:none; color:var(--slate); }
-  .lat-opt:hover { border-color:var(--teal); background:var(--teal-bg); }
-  .lat-opt input[type="radio"] { display:none; }
-  .lat-opt.selected { border-color:var(--teal); background:var(--teal-bg); color:var(--teal-dark); }
+  /* TABLE */
+  .table-wrapper{background:white;border:1.5px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow-x:auto;margin-bottom:18px;}
+  table{width:100%;border-collapse:collapse;min-width:900px;}
+  thead tr{background:var(--slate);color:white;}
+  thead th{padding:11px 13px;font-size:0.72rem;font-weight:600;text-align:left;letter-spacing:0.3px;text-transform:uppercase;white-space:nowrap;}
+  thead th.tc{text-align:center;background:var(--teal-dark);font-size:0.68rem;}
+  .tsub{font-size:0.63rem;font-weight:400;opacity:0.75;display:block;font-family:'DM Mono',monospace;text-transform:none;margin-top:1px;}
+  tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:#f8fafc;}
+  tbody td{padding:9px 12px;font-size:0.84rem;vertical-align:middle;}
+  .pt-name{font-weight:700;}
 
-  /* ── TABLE ── */
-  .table-wrapper { background:white; border:1.5px solid var(--border); border-radius:14px; box-shadow:var(--shadow); overflow-x:auto; margin-bottom:18px; }
-  table { width:100%; border-collapse:collapse; min-width:920px; }
-  thead tr { background:var(--slate); color:white; }
-  thead th { padding:11px 13px; font-size:0.72rem; font-weight:600; text-align:left; letter-spacing:0.3px; text-transform:uppercase; white-space:nowrap; }
-  thead th.tc { text-align:center; background:var(--teal-dark); font-size:0.68rem; }
-  .tsub { font-size:0.63rem; font-weight:400; opacity:0.75; display:block; font-family:'DM Mono',monospace; text-transform:none; margin-top:1px; }
-  tbody tr { border-bottom:1px solid var(--border); transition:background 0.1s; }
-  tbody tr:last-child { border-bottom:none; }
-  tbody tr:hover { background:#f8fafc; }
-  tbody td { padding:9px 12px; font-size:0.84rem; vertical-align:middle; }
-  .pt-name { font-weight:700; }
+  /* CHECK BOXES */
+  td.cc{text-align:center;}
+  .cw{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;cursor:pointer;transition:all 0.15s;border:1.5px dashed #cbd5e1;background:var(--bg);}
+  .cw:hover{border-color:#0d9488;background:var(--teal-bg);}
+  .cw.checked{background:var(--green);border:1.5px solid var(--green);}
+  .cw.missed{background:#fee2e2;border:1.5px solid #fca5a5;}
+  .ck-tick{color:white;font-size:15px;font-weight:700;line-height:1;}
+  .ck-cross{color:#ef4444;font-size:15px;font-weight:700;line-height:1;}
 
-  /* ── CHECK BOXES ── */
-  td.cc { text-align:center; }
-  .cw { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; cursor:pointer; transition:all 0.15s; border:1.5px dashed #cbd5e1; background:var(--bg); }
-  .cw:hover   { border-color:var(--teal); background:var(--teal-bg); }
-  .cw.checked { background:var(--green); border:1.5px solid var(--green); }
-  .cw.missed  { background:#fee2e2; border:1.5px solid #fca5a5; }
-  .ck-tick  { color:white;    font-size:15px; font-weight:700; line-height:1; }
-  .ck-cross { color:#ef4444;  font-size:15px; font-weight:700; line-height:1; }
+  /* STATUS / COMPLIANCE */
+  .rs{display:inline-flex;align-items:center;gap:4px;font-size:0.72rem;font-weight:600;padding:3px 9px;border-radius:6px;white-space:nowrap;}
+  .rs-all{background:var(--green-light);color:#065f46;}
+  .rs-none{background:var(--red-light);color:#991b1b;}
+  .rs-part{background:var(--amber-light);color:#92400e;}
+  .rs-pend{background:var(--bg);color:var(--slate-light);border:1px dashed #cbd5e1;}
+  .pp{display:inline-flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:6px;min-width:44px;}
+  .pp-100{background:var(--green-light);color:#065f46;}
+  .pp-high{background:#d1fae5;color:#065f46;}
+  .pp-mid{background:var(--amber-light);color:#92400e;}
+  .pp-low{background:var(--red-light);color:#991b1b;}
+  .pp-none{background:var(--bg);color:var(--slate-light);border:1px dashed #cbd5e1;}
 
-  /* ── STATUS / COMPLIANCE ── */
-  .rs { display:inline-flex; align-items:center; gap:4px; font-size:0.72rem; font-weight:600; padding:3px 9px; border-radius:6px; white-space:nowrap; }
-  .rs-all  { background:var(--green-light); color:#065f46; }
-  .rs-none { background:var(--red-light);   color:#991b1b; }
-  .rs-part { background:var(--amber-light); color:#92400e; }
-  .rs-pend { background:var(--bg); color:var(--slate-light); border:1px dashed #cbd5e1; }
-  .pp { display:inline-flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:0.72rem; font-weight:700; padding:3px 8px; border-radius:6px; min-width:44px; }
-  .pp-100  { background:var(--green-light); color:#065f46; }
-  .pp-high { background:#d1fae5; color:#065f46; }
-  .pp-mid  { background:var(--amber-light); color:#92400e; }
-  .pp-low  { background:var(--red-light);   color:#991b1b; }
-  .pp-none { background:var(--bg); color:var(--slate-light); border:1px dashed #cbd5e1; }
+  /* ACTION BUTTONS */
+  .act-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:6px 11px;border-radius:8px;border:1.5px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.15s;color:var(--slate);margin:2px;min-height:34px;white-space:nowrap;}
+  .act-edit:hover{border-color:#0d9488;color:#0d9488;background:var(--teal-bg);}
+  .act-arch:hover{border-color:#f59e0b;color:#92400e;background:var(--amber-light);}
 
-  /* ── ACTION BUTTONS ── */
-  .act-btn { display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 11px; border-radius:8px; border:1.5px solid var(--border); background:white; font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.15s; color:var(--slate); margin:2px; min-height:34px; white-space:nowrap; }
-  .act-edit:hover    { border-color:var(--teal); color:var(--teal); background:var(--teal-bg); }
-  .act-arch:hover    { border-color:#f59e0b; color:#92400e; background:var(--amber-light); }
+  /* INLINE EDIT */
+  .ebox{background:var(--teal-bg);border-top:2px solid #0d9488;border-bottom:2px solid #0d9488;padding:18px 22px;}
+  .ebox-title{font-size:0.86rem;color:var(--teal-dark);margin-bottom:14px;font-weight:600;}
+  .ebox-fields{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+  .eg{display:flex;flex-direction:column;gap:4px;min-width:140px;flex:1;}
+  .eg-full{flex-basis:100%;min-width:100%;}
+  .eg label{font-size:0.7rem;font-weight:700;color:var(--teal-dark);text-transform:uppercase;}
+  .eg input,.eg select{font-family:'DM Sans',sans-serif;font-size:0.86rem;padding:8px 11px;border:1.5px solid var(--teal-border);border-radius:8px;background:white;color:var(--slate);}
+  .eg input:focus,.eg select:focus{outline:none;border-color:#0d9488;}
+  .ebox-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 
-  /* ── INLINE EDIT ── */
-  .ebox { background:var(--teal-bg); border-top:2px solid var(--teal); border-bottom:2px solid var(--teal); padding:18px 22px; }
-  .ebox-title { font-size:0.86rem; color:var(--teal-dark); margin-bottom:14px; font-weight:600; }
-  .ebox-fields { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
-  .eg { display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; }
-  .eg-full { flex-basis:100%; min-width:100%; }
-  .eg label { font-size:0.7rem; font-weight:700; color:var(--teal-dark); text-transform:uppercase; }
-  .eg input, .eg select { font-family:'DM Sans',sans-serif; font-size:0.86rem; padding:8px 11px; border:1.5px solid var(--teal-border); border-radius:8px; background:white; color:var(--slate); }
-  .eg input:focus, .eg select:focus { outline:none; border-color:var(--teal); }
-  .ebox-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  /* EMPTY STATE */
+  .empty-state{text-align:center;padding:44px 20px;color:var(--slate-light);}
+  .empty-icon{font-size:38px;margin-bottom:10px;}
+  .empty-state p{font-size:0.88rem;}
 
-  /* ── EMPTY STATE ── */
-  .empty-state { text-align:center; padding:44px 20px; color:var(--slate-light); }
-  .empty-icon  { font-size:38px; margin-bottom:10px; }
-  .empty-state p { font-size:0.88rem; }
+  /* ARCHIVE */
+  .archive-panel{background:white;border:1.5px solid var(--border);border-radius:14px;margin-bottom:18px;box-shadow:var(--shadow);overflow:hidden;}
+  .arch-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;cursor:pointer;background:#fffbeb;border-bottom:1.5px solid transparent;transition:background 0.15s;}
+  .arch-hdr:hover{background:#fef3c7;}
+  .arch-hdr.open{border-bottom-color:var(--border);}
+  .arch-hdr-l{display:flex;align-items:center;gap:9px;}
+  .arch-title{font-size:0.88rem;font-weight:700;color:#92400e;}
+  .arch-count{background:var(--amber-light);color:#92400e;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid #fcd34d;}
+  .arch-chev{color:#92400e;font-size:13px;transition:transform 0.2s;}
+  .arch-chev.open{transform:rotate(180deg);}
+  .arch-body{display:none;padding:14px 18px;}
+  .arch-body.open{display:block;}
+  .arch-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:7px;background:var(--bg);flex-wrap:wrap;}
+  .arch-row:last-child{margin-bottom:0;}
+  .arch-row-info{flex:1;min-width:160px;}
+  .arch-row-name{font-weight:700;font-size:0.85rem;}
+  .arch-row-meta{font-size:0.72rem;color:var(--slate-light);margin-top:1px;}
+  .btn-restore{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;border:1.5px solid #6ee7b7;background:var(--green-light);color:#065f46;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+  .btn-restore:hover{background:#a7f3d0;}
+  .btn-del-arch{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:7px;border:1.5px solid #fca5a5;background:var(--red-light);color:var(--red);font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+  .btn-del-arch:hover{background:#fecaca;}
 
-  /* ── ARCHIVE ── */
-  .archive-panel { background:white; border:1.5px solid var(--border); border-radius:14px; margin-bottom:18px; box-shadow:var(--shadow); overflow:hidden; }
-  .arch-hdr { display:flex; align-items:center; justify-content:space-between; padding:13px 18px; cursor:pointer; background:#fffbeb; border-bottom:1.5px solid transparent; transition:background 0.15s; }
-  .arch-hdr:hover { background:#fef3c7; }
-  .arch-hdr.open  { border-bottom-color:var(--border); }
-  .arch-hdr-l { display:flex; align-items:center; gap:9px; }
-  .arch-title { font-size:0.88rem; font-weight:700; color:#92400e; }
-  .arch-count { background:var(--amber-light); color:#92400e; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:20px; border:1px solid #fcd34d; }
-  .arch-chev  { color:#92400e; font-size:13px; transition:transform 0.2s; }
-  .arch-chev.open { transform:rotate(180deg); }
-  .arch-body  { display:none; padding:14px 18px; }
-  .arch-body.open { display:block; }
-  .arch-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; border:1.5px solid var(--border); margin-bottom:7px; background:var(--bg); flex-wrap:wrap; }
-  .arch-row:last-child { margin-bottom:0; }
-  .arch-row-info { flex:1; min-width:160px; }
-  .arch-row-name { font-weight:700; font-size:0.85rem; }
-  .arch-row-meta { font-size:0.72rem; color:var(--slate-light); margin-top:1px; }
-  .btn-restore { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border-radius:7px; border:1.5px solid #6ee7b7; background:var(--green-light); color:#065f46; font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
-  .btn-restore:hover { background:#a7f3d0; }
-  .btn-del-arch { display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:7px; border:1.5px solid #fca5a5; background:var(--red-light); color:var(--red); font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
-  .btn-del-arch:hover { background:#fecaca; }
+  /* LOADING + TOAST */
+  #loadingBar{display:none;position:fixed;top:0;left:0;right:0;height:3px;background:var(--teal-light);z-index:9999;animation:lp 1s ease-in-out infinite;}
+  @keyframes lp{0%,100%{opacity:1}50%{opacity:0.4}}
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--teal-dark);color:white;padding:10px 20px;border-radius:10px;font-size:0.83rem;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,0.2);transition:transform 0.3s ease,opacity 0.3s ease;opacity:0;z-index:9999;white-space:nowrap;}
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 
-  /* ── LOADING + TOAST ── */
-  #loadingBar { display:none; position:fixed; top:0; left:0; right:0; height:3px; background:var(--teal-light); z-index:9999; animation:lp 1s ease-in-out infinite; }
-  @keyframes lp { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  #toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--teal-dark); color:white; padding:10px 20px; border-radius:10px; font-size:0.83rem; font-weight:600; box-shadow:0 4px 20px rgba(0,0,0,0.2); transition:transform 0.3s ease, opacity 0.3s ease; opacity:0; z-index:9999; white-space:nowrap; }
-  #toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+  /* FOOTER */
+  .footer-note{text-align:center;font-size:0.76rem;color:var(--slate-light);padding:14px 0;border-top:1px solid var(--border);margin-top:6px;}
 
-  /* ── FOOTER ── */
-  .footer-note { text-align:center; font-size:0.76rem; color:var(--slate-light); padding:14px 0; border-top:1px solid var(--border); margin-top:6px; }
-
-  /* ── PRINT ── */
-  @media print {
-    header { background:var(--teal-dark) !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    .btn,.add-form,.week-selector,.filter-tabs,.act-btn,.ebox { display:none !important; }
-    .table-wrapper { box-shadow:none; border:1px solid #ccc; overflow:visible; }
+  /* PRINT */
+  @media print{
+    header{background:var(--teal-dark) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .btn,.add-form,.week-selector,.filter-tabs,.act-btn,.ebox{display:none !important;}
+    .table-wrapper{box-shadow:none;border:1px solid #ccc;overflow:visible;}
   }
-  @media (max-width:600px) {
-    .header-inner { padding:14px 16px; }
-    main { padding:14px 10px; }
-    .header-title h1 { font-size:1.05rem; }
+  @media(max-width:600px){
+    .header-inner{padding:14px 16px;}
+    main{padding:14px 10px;}
+    .header-title h1{font-size:1.05rem;}
   }
 </style>
 </head>
@@ -307,7 +309,7 @@
     <div class="compliance-main">
       <div class="compliance-dial">
         <svg viewBox="0 0 80 80">
-          <circle class="dial-bg"   cx="40" cy="40" r="34"/>
+          <circle class="dial-bg" cx="40" cy="40" r="34"/>
           <circle class="dial-fill" cx="40" cy="40" r="34" id="dialFill" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
         </svg>
         <div class="dial-pct" id="dialPct">—</div>
@@ -344,7 +346,7 @@
         <input type="text" id="newName" placeholder="e.g. John Smith">
       </div>
       <div class="form-group" style="max-width:155px">
-        <label>MRN Number <span style="font-weight:400;text-transform:none;opacity:0.7">(optional)</span></label>
+        <label>MRN <span style="font-weight:400;text-transform:none;opacity:0.7">(optional)</span></label>
         <input type="text" id="newMrn" placeholder="e.g. 1234567">
       </div>
       <div class="form-group" style="max-width:145px">
@@ -361,22 +363,8 @@
         </select>
       </div>
       <div class="form-group" style="flex-basis:100%;min-width:100%">
-        <label>Splint Type(s) — select one or more</label>
-        <div class="splint-checks" id="newChips">
-          <div class="splint-chip" onclick="toggleChip(this)"><input type="checkbox" value="Hand Splint"> ✋ Hand Splint</div>
-          <div class="splint-chip" onclick="toggleChip(this)"><input type="checkbox" value="Foot Splint"> 🦶 Foot Splint</div>
-          <div class="splint-chip" onclick="toggleChip(this)"><input type="checkbox" value="Hand Rolls"> 🤛 Hand Rolls</div>
-          <div class="splint-chip" onclick="toggleChip(this)"><input type="checkbox" value="Elbow Gaiters"> 💪 Elbow Gaiters</div>
-          <div class="splint-chip" onclick="toggleChip(this)"><input type="checkbox" value="Knee Immobilizer"> 🦵 Knee Immobilizer</div>
-        </div>
-      </div>
-      <div class="form-group" style="max-width:260px">
-        <label>Laterality</label>
-        <div class="lat-select" id="newLat">
-          <div class="lat-opt" onclick="selectLat(this,'newLat')"><input type="radio" name="newLat" value="Left"> 👈 Left</div>
-          <div class="lat-opt" onclick="selectLat(this,'newLat')"><input type="radio" name="newLat" value="Right"> 👉 Right</div>
-          <div class="lat-opt selected" onclick="selectLat(this,'newLat')"><input type="radio" name="newLat" value="Both" checked> 👐 Both</div>
-        </div>
+        <label>Splints &amp; Laterality — tick splint, then choose side</label>
+        <div class="splint-builder" id="newSplintBuilder"></div>
       </div>
       <button class="btn btn-primary" id="addBtn" onclick="addPatient()">Add Patient</button>
       <button class="btn btn-outline" onclick="toggleForm()">Cancel</button>
@@ -387,8 +375,8 @@
   <div class="filter-tabs" id="filterTabs">
     <span class="filter-label">Filter:</span>
     <button class="filter-tab active" data-ward="all">All Wards</button>
-    <button class="filter-tab tab-A"    data-ward="Ward A">🟣 Ward A</button>
-    <button class="filter-tab tab-B"    data-ward="Ward B">🟡 Ward B</button>
+    <button class="filter-tab tab-A" data-ward="Ward A">🟣 Ward A</button>
+    <button class="filter-tab tab-B" data-ward="Ward B">🟡 Ward B</button>
     <button class="filter-tab tab-ICU1" data-ward="ICU 1">🔴 ICU 1</button>
     <button class="filter-tab tab-ICU2" data-ward="ICU 2">🔵 ICU 2</button>
   </div>
@@ -416,8 +404,7 @@
           <th>MRN</th>
           <th>Room</th>
           <th>Ward</th>
-          <th>Splint(s)</th>
-          <th>Side</th>
+          <th>Splints &amp; Side</th>
           <th class="tc">Morning<span class="tsub">6–8 AM</span></th>
           <th class="tc">Midday<span class="tsub">10 AM–12 PM</span></th>
           <th class="tc">Afternoon<span class="tsub">2–4 PM</span></th>
@@ -427,43 +414,46 @@
         </tr>
       </thead>
       <tbody id="tBody">
-        <tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients yet — click <strong>Add Patient</strong> to begin.</p></div></td></tr>
+        <tr><td colspan="12"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients yet — click <strong>Add Patient</strong> to begin.</p></div></td></tr>
       </tbody>
     </table>
   </div>
 
-  <div class="footer-note">🩹 Data is stored in Supabase and saves automatically. Use <strong>Excel</strong> or <strong>Print</strong> to export records.</div>
+  <div class="footer-note">🩹 Data stored in Supabase · saves automatically · use <strong>Excel</strong> or <strong>Print</strong> to export</div>
 </main>
 
 <script>
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // CONSTANTS
-// ═══════════════════════════════════════════════════════
-const WARD_CLASS  = { 'Ward A':'ward-A','Ward B':'ward-B','ICU 1':'ward-ICU1','ICU 2':'ward-ICU2' };
-const WARD_ICON   = { 'Ward A':'🟣','Ward B':'🟡','ICU 1':'🔴','ICU 2':'🔵' };
-const SPLINT_ICON = { 'Hand Splint':'✋','Foot Splint':'🦶','Hand Rolls':'🤛','Elbow Gaiters':'💪','Knee Immobilizer':'🦵' };
+// ═══════════════════════════════════════════════════
+const WARD_CLASS = {'Ward A':'ward-A','Ward B':'ward-B','ICU 1':'ward-ICU1','ICU 2':'ward-ICU2'};
+const WARD_ICON  = {'Ward A':'🟣','Ward B':'🟡','ICU 1':'🔴','ICU 2':'🔵'};
+const SPLINT_ICON = {'Hand Splint':'✋','Foot Splint':'🦶','Hand Rolls':'🤛','Elbow Gaiters':'💪','Knee Immobilizer':'🦵'};
 const ALL_SPLINTS = ['Hand Splint','Foot Splint','Hand Rolls','Elbow Gaiters','Knee Immobilizer'];
 const SLOTS = ['morning','midday','afternoon'];
+const LAT_OPTIONS = ['L','R','B']; // Left, Right, Both
+const LAT_LABEL = {'L':'Left','R':'Right','B':'Both'};
+const LAT_CLS   = {'L':'sl-L','R':'sl-R','B':'sl-B'};
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 let patients         = [];
 let archivedPatients = [];
 let auditChecks      = {};
 let auditDateKey     = '';
 let activeFilter     = 'all';
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // SUPABASE
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 const SUPA_URL = 'https://kuitxgcldoykwkhxwzpg.supabase.co';
 const SUPA_KEY = 'sb_publishable_mgq9KFST-XkQIF-snjQxug_S4BS7qMw';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // UTILITIES
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 function setLoading(on) {
   document.getElementById('loadingBar').style.display = on ? 'block' : 'none';
 }
@@ -494,16 +484,26 @@ function maskMrn(mrn) {
   return s.length <= 3 ? s : '***' + s.slice(-3);
 }
 
+// splints stored as array of {name, lat} objects
+// Normalise whatever comes from DB into that shape
+function normaliseSplints(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(item => {
+    if (typeof item === 'string') return { name: item, lat: 'B' }; // legacy
+    if (item && typeof item === 'object') return { name: item.name || '', lat: item.lat || 'B' };
+    return null;
+  }).filter(Boolean);
+}
+
 function mapRow(p) {
   return {
-    id:          p.id,
-    name:        p.name        || '',
-    mrn:         p.mrn         || '',
-    room:        p.room        || '',
-    ward:        p.ward        || 'Ward A',
-    splints:     Array.isArray(p.splints) ? p.splints : [],
-    laterality:  p.laterality  || 'Both',
-    archived:    !!p.archived,
+    id:       p.id,
+    name:     p.name     || '',
+    mrn:      p.mrn      || '',
+    room:     p.room     || '',
+    ward:     p.ward     || 'Ward A',
+    splints:  normaliseSplints(p.splints),
+    archived: !!p.archived,
   };
 }
 
@@ -516,69 +516,120 @@ function statusOf(p) {
   const pw   = withChecks(p);
   const vals = SLOTS.map(s => pw[s]);
   const rec  = vals.filter(v => v !== null);
-  if (!rec.length)                   return 'Pending';
-  if (vals.every(v => v === true))   return 'Complete';
-  if (vals.every(v => v === false))  return 'Not Done';
+  if (!rec.length)                  return 'Pending';
+  if (vals.every(v => v === true))  return 'Complete';
+  if (vals.every(v => v === false)) return 'Not Done';
   return `Partial (${vals.filter(v=>v===true).length}/3)`;
 }
 
-// Sort patients array alphanumerically by room number
 function sortPatients() {
-  patients.sort((a, b) => {
-    const ra = (a.room || '').trim().toLowerCase();
-    const rb = (b.room || '').trim().toLowerCase();
-    return ra.localeCompare(rb, undefined, { numeric: true, sensitivity: 'base' });
+  patients.sort((a, b) =>
+    (a.room||'').trim().localeCompare((b.room||'').trim(), undefined, {numeric:true, sensitivity:'base'})
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// SPLINT BUILDER UI
+// builds the per-splint laterality picker for a given container
+// currentSplints = [{name, lat}] for pre-filling
+// ═══════════════════════════════════════════════════
+function buildSplintUI(containerId, currentSplints = []) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const map = {};
+  currentSplints.forEach(s => { map[s.name] = s.lat; });
+
+  container.innerHTML = ALL_SPLINTS.map(name => {
+    const active = !!map[name];
+    const lat = map[name] || 'B';
+    return `
+    <div class="splint-builder-row${active?' active':''}" id="sbr_${containerId}_${name.replace(/\s/g,'_')}">
+      <label class="splint-toggle">
+        <input type="checkbox" value="${name}" ${active?'checked':''} onchange="onSplintCheck(this,'${containerId}')">
+        <div class="splint-check-box">${active?'✓':''}</div>
+        <span class="splint-name">${SPLINT_ICON[name]||'🩹'} ${name}</span>
+      </label>
+      <div class="lat-pills" id="lp_${containerId}_${name.replace(/\s/g,'_')}">
+        <span class="lat-pill${lat==='L'?' sel-L':''}" data-lat="L" onclick="pickLat('${containerId}','${name}','L',this)">👈 L</span>
+        <span class="lat-pill${lat==='R'?' sel-R':''}" data-lat="R" onclick="pickLat('${containerId}','${name}','R',this)">👉 R</span>
+        <span class="lat-pill${lat==='B'?' sel-B':''}" data-lat="B" onclick="pickLat('${containerId}','${name}','B',this)">👐 Both</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function onSplintCheck(cb, containerId) {
+  const name = cb.value;
+  const rowId = `sbr_${containerId}_${name.replace(/\s/g,'_')}`;
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  const box = row.querySelector('.splint-check-box');
+  if (cb.checked) {
+    row.classList.add('active');
+    if (box) box.textContent = '✓';
+    // Auto-select Both if nothing picked
+    const pills = row.querySelectorAll('.lat-pill');
+    const anyPicked = Array.from(pills).some(p => p.classList.contains('sel-L')||p.classList.contains('sel-R')||p.classList.contains('sel-B'));
+    if (!anyPicked) {
+      const bothPill = Array.from(pills).find(p => p.dataset.lat === 'B');
+      if (bothPill) bothPill.classList.add('sel-B');
+    }
+  } else {
+    row.classList.remove('active');
+    if (box) box.textContent = '';
+  }
+}
+
+function pickLat(containerId, name, lat, clickedEl) {
+  const lpId = `lp_${containerId}_${name.replace(/\s/g,'_')}`;
+  const lp = document.getElementById(lpId);
+  if (!lp) return;
+  lp.querySelectorAll('.lat-pill').forEach(p => p.classList.remove('sel-L','sel-R','sel-B'));
+  clickedEl.classList.add(`sel-${lat}`);
+  // Also tick the checkbox if it wasn't ticked
+  const rowId = `sbr_${containerId}_${name.replace(/\s/g,'_')}`;
+  const row = document.getElementById(rowId);
+  if (row) {
+    const cb = row.querySelector('input[type="checkbox"]');
+    if (cb && !cb.checked) { cb.checked = true; onSplintCheck(cb, containerId); }
+  }
+}
+
+function getSplints(containerId) {
+  const result = [];
+  ALL_SPLINTS.forEach(name => {
+    const rowId = `sbr_${containerId}_${name.replace(/\s/g,'_')}`;
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    const cb = row.querySelector('input[type="checkbox"]');
+    if (!cb || !cb.checked) return;
+    const lpId = `lp_${containerId}_${name.replace(/\s/g,'_')}`;
+    const lp = document.getElementById(lpId);
+    let lat = 'B';
+    if (lp) {
+      const sel = lp.querySelector('.lat-pill[class*="sel-"]');
+      if (sel) lat = sel.dataset.lat;
+    }
+    result.push({ name, lat });
   });
+  return result;
 }
 
-function getChips(containerId) {
-  return Array.from(
-    document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)
-  ).map(cb => cb.value);
-}
-
-// Called by onclick on splint chips (defined in HTML)
-function toggleChip(el) {
-  const cb = el.querySelector('input[type="checkbox"]');
-  if (!cb) return;
-  cb.checked = !cb.checked;
-  el.classList.toggle('selected', cb.checked);
-}
-
-// Laterality selector helpers
-function selectLat(el, groupId) {
-  document.querySelectorAll(`#${groupId} .lat-opt`).forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-  const rb = el.querySelector('input[type="radio"]');
-  if (rb) rb.checked = true;
-}
-function getLat(groupId) {
-  const checked = document.querySelector(`#${groupId} input[type="radio"]:checked`);
-  return checked ? checked.value : 'Both';
-}
-function setLat(groupId, val) {
-  document.querySelectorAll(`#${groupId} .lat-opt`).forEach(o => {
-    const rb = o.querySelector('input[type="radio"]');
-    const match = rb && rb.value === val;
-    if (rb) rb.checked = match;
-    o.classList.toggle('selected', match);
-  });
-}
-
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 window.onload = async function () {
   const today = new Date();
   document.getElementById('todayBadge').textContent =
-    today.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    today.toLocaleDateString('en-GB', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
   const yyyy = today.getFullYear();
-  const mm   = String(today.getMonth() + 1).padStart(2,'0');
+  const mm   = String(today.getMonth()+1).padStart(2,'0');
   const dd   = String(today.getDate()).padStart(2,'0');
   document.getElementById('auditDate').value = `${yyyy}-${mm}-${dd}`;
 
-  // Filter tab delegation
+  buildSplintUI('newSplintBuilder', []);
+
   document.getElementById('filterTabs').addEventListener('click', e => {
     const tab = e.target.closest('.filter-tab');
     if (!tab) return;
@@ -594,9 +645,9 @@ window.onload = async function () {
   handleDateChange();
 };
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // DATE
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 function handleDateChange() {
   const val = document.getElementById('auditDate').value;
   if (!val) return;
@@ -604,7 +655,7 @@ function handleDateChange() {
   const day = d.getDay();
   const lbl = document.getElementById('dayLabel');
   if (day >= 1 && day <= 5) {
-    lbl.textContent = '✅ ' + d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    lbl.textContent = '✅ ' + d.toLocaleDateString('en-GB', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
     lbl.className = 'day-label day-ok';
   } else {
     lbl.textContent = '⚠️ Weekend — splinting is Mon–Fri only';
@@ -614,11 +665,11 @@ function handleDateChange() {
   loadChecks();
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // DB: PATIENTS
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 async function loadPatients() {
-  const { data, error } = await sb.from('patients').select('*').order('created_at', { ascending:true });
+  const { data, error } = await sb.from('patients').select('*').order('created_at', {ascending:true});
   if (error) { showToast('⚠️ Load failed: ' + error.message, true); return; }
   const all = (data || []).map(mapRow);
   patients         = all.filter(p => !p.archived);
@@ -638,9 +689,9 @@ async function dbDelete(id) {
   if (error) throw error;
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // DB: AUDIT CHECKS
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 async function loadChecks() {
   if (!auditDateKey) return;
   setLoading(true);
@@ -649,40 +700,42 @@ async function loadChecks() {
   auditChecks = {};
   if (error) { showToast('⚠️ Could not load checks: ' + error.message, true); }
   else (data || []).forEach(r => {
-    auditChecks[r.patient_id] = { morning:r.morning, midday:r.midday, afternoon:r.afternoon };
+    auditChecks[r.patient_id] = {morning:r.morning, midday:r.midday, afternoon:r.afternoon};
   });
   render();
 }
 
 async function upsertCheck(pid) {
-  const c = auditChecks[pid] || { morning:null, midday:null, afternoon:null };
+  const c = auditChecks[pid] || {morning:null, midday:null, afternoon:null};
   const { error } = await sb.from('audit_checks').upsert(
-    { patient_id:pid, audit_date:auditDateKey, morning:c.morning, midday:c.midday, afternoon:c.afternoon },
-    { onConflict:'patient_id,audit_date' }
+    {patient_id:pid, audit_date:auditDateKey, morning:c.morning, midday:c.midday, afternoon:c.afternoon},
+    {onConflict:'patient_id,audit_date'}
   );
   if (error) showToast('⚠️ Could not save tick: ' + error.message, true);
 }
 
-// ═══════════════════════════════════════════════════════
-// FORM: ADD PATIENT
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// ADD PATIENT
+// ═══════════════════════════════════════════════════
 function toggleForm() {
   const f = document.getElementById('addForm');
   f.classList.toggle('open');
-  if (f.classList.contains('open')) document.getElementById('newName').focus();
+  if (f.classList.contains('open')) {
+    buildSplintUI('newSplintBuilder', []);
+    document.getElementById('newName').focus();
+  }
 }
 
 async function addPatient() {
-  const name       = document.getElementById('newName').value.trim();
-  const mrn        = document.getElementById('newMrn').value.trim();
-  const room       = document.getElementById('newRoom').value.trim();
-  const ward       = document.getElementById('newWard').value;
-  const splints    = getChips('newChips');
-  const laterality = getLat('newLat');
+  const name    = document.getElementById('newName').value.trim();
+  const mrn     = document.getElementById('newMrn').value.trim();
+  const room    = document.getElementById('newRoom').value.trim();
+  const ward    = document.getElementById('newWard').value;
+  const splints = getSplints('newSplintBuilder');
 
-  if (!name)           { document.getElementById('newName').focus(); showToast('⚠️ Enter patient name', true);  return; }
-  if (!room)           { document.getElementById('newRoom').focus(); showToast('⚠️ Enter room number', true);   return; }
-  if (!splints.length) { showToast('⚠️ Select at least one splint type', true); return; }
+  if (!name)           { document.getElementById('newName').focus(); showToast('⚠️ Enter patient name', true); return; }
+  if (!room)           { document.getElementById('newRoom').focus(); showToast('⚠️ Enter room number', true);  return; }
+  if (!splints.length) { showToast('⚠️ Select at least one splint', true); return; }
 
   const btn = document.getElementById('addBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
@@ -690,14 +743,13 @@ async function addPatient() {
   try {
     setLoading(true);
     const { data, error } = await sb.from('patients')
-      .insert({ name, mrn, room, ward, splints, laterality })
+      .insert({ name, mrn, room, ward, splints })
       .select().single();
     if (error) throw error;
     patients.push(mapRow(data));
     sortPatients();
     ['newName','newMrn','newRoom'].forEach(id => document.getElementById(id).value = '');
-    setChips('newChips', []);
-    setLat('newLat', 'Both');
+    buildSplintUI('newSplintBuilder', []);
     document.getElementById('addForm').classList.remove('open');
     render();
     showToast('✅ Patient saved');
@@ -709,11 +761,11 @@ async function addPatient() {
   }
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // PATIENT ACTIONS
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 async function toggleCheck(pid, slot) {
-  if (!auditChecks[pid]) auditChecks[pid] = { morning:null, midday:null, afternoon:null };
+  if (!auditChecks[pid]) auditChecks[pid] = {morning:null, midday:null, afternoon:null};
   const c = auditChecks[pid];
   c[slot] = c[slot] === null ? true : c[slot] === true ? false : null;
   render();
@@ -724,7 +776,7 @@ async function archivePatient(id) {
   if (!confirm('Move this patient to the archive? You can restore them later.')) return;
   try {
     setLoading(true);
-    await dbUpdate(id, { archived: true });
+    await dbUpdate(id, {archived:true});
     const p = patients.find(p => p.id === id);
     if (p) { patients = patients.filter(q => q.id !== id); p.archived = true; archivedPatients.push(p); }
     render(); renderArchive();
@@ -736,7 +788,7 @@ async function archivePatient(id) {
 async function restorePatient(id) {
   try {
     setLoading(true);
-    await dbUpdate(id, { archived: false });
+    await dbUpdate(id, {archived:false});
     const p = archivedPatients.find(p => p.id === id);
     if (p) { archivedPatients = archivedPatients.filter(q => q.id !== id); p.archived = false; patients.push(p); }
     sortPatients();
@@ -761,13 +813,13 @@ async function deletePermanently(id, fromArchive) {
   finally { setLoading(false); }
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // TABLE EVENT DELEGATION
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 const tBody = document.getElementById('tBody');
 
-// Check-wrap taps
 tBody.addEventListener('click', async e => {
+  // Check-wrap taps
   const cw = e.target.closest('.cw[data-pid]');
   if (cw) { await toggleCheck(cw.dataset.pid, cw.dataset.slot); return; }
 
@@ -778,7 +830,11 @@ tBody.addEventListener('click', async e => {
   if (action === 'edit') {
     tBody.querySelectorAll('.edit-row').forEach(r => r.style.display = 'none');
     const row = document.getElementById('erow_' + id);
-    if (row) row.style.display = '';
+    if (row) {
+      row.style.display = '';
+      const p = patients.find(p => p.id === id);
+      if (p) buildSplintUI('esb_' + id, p.splints);
+    }
     return;
   }
   if (action === 'cancel') {
@@ -789,21 +845,18 @@ tBody.addEventListener('click', async e => {
   if (action === 'save') {
     const p = patients.find(p => p.id === id);
     if (!p) return;
-    const name       = document.getElementById('ef_n_' + id).value.trim();
-    const mrn        = document.getElementById('ef_m_' + id).value.trim();
-    const room       = document.getElementById('ef_r_' + id).value.trim();
-    const ward       = document.getElementById('ef_w_' + id).value;
-    const laterality = getLat('ef_lat_' + id);
-    const splints    = Array.from(
-      document.querySelectorAll(`#erow_${id} .splint-chip input[type="checkbox"]:checked`)
-    ).map(cb => cb.value);
+    const name    = document.getElementById('ef_n_' + id).value.trim();
+    const mrn     = document.getElementById('ef_m_' + id).value.trim();
+    const room    = document.getElementById('ef_r_' + id).value.trim();
+    const ward    = document.getElementById('ef_w_' + id).value;
+    const splints = getSplints('esb_' + id);
     if (!name)           { document.getElementById('ef_n_' + id).focus(); return; }
     if (!room)           { document.getElementById('ef_r_' + id).focus(); return; }
-    if (!splints.length) { showToast('⚠️ Select at least one splint type', true); return; }
+    if (!splints.length) { showToast('⚠️ Select at least one splint', true); return; }
     try {
       setLoading(true);
-      await dbUpdate(id, { name, mrn, room, ward, splints, laterality });
-      p.name = name; p.mrn = mrn; p.room = room; p.ward = ward; p.splints = splints; p.laterality = laterality;
+      await dbUpdate(id, {name, mrn, room, ward, splints});
+      p.name = name; p.mrn = mrn; p.room = room; p.ward = ward; p.splints = splints;
       sortPatients();
       const row = document.getElementById('erow_' + id);
       if (row) row.style.display = 'none';
@@ -817,44 +870,45 @@ tBody.addEventListener('click', async e => {
   if (action === 'delete')  { await deletePermanently(id, false); return; }
 });
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // RENDER: TABLE
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+function splintBadgeHtml(splints) {
+  if (!splints.length) return '<span style="color:#94a3b8;font-size:0.72rem">—</span>';
+  return `<div class="splint-wrap">${splints.map(s =>
+    `<span class="splint-entry">${SPLINT_ICON[s.name]||'🩹'} ${esc(s.name)}<span class="splint-lat ${LAT_CLS[s.lat]||'sl-B'}">${LAT_LABEL[s.lat]||'Both'}</span></span>`
+  ).join('')}</div>`;
+}
+
 function render() {
   const visible = activeFilter === 'all'
     ? patients
     : patients.filter(p => p.ward === activeFilter);
 
   if (!patients.length) {
-    tBody.innerHTML = `<tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients yet — click <strong>Add Patient</strong> to begin.</p></div></td></tr>`;
+    tBody.innerHTML = `<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients yet — click <strong>Add Patient</strong> to begin.</p></div></td></tr>`;
     updateStats(); return;
   }
   if (!visible.length) {
-    tBody.innerHTML = `<tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🏥</div><p>No patients in this ward.</p></div></td></tr>`;
+    tBody.innerHTML = `<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">🏥</div><p>No patients in this ward.</p></div></td></tr>`;
     updateStats(); return;
   }
 
   tBody.innerHTML = visible.map((p, i) => {
-    const pw      = withChecks(p);
-    const vals    = SLOTS.map(s => pw[s]);
-    const wk      = p.ward || 'Ward A';
-    const wCls    = WARD_CLASS[wk] || 'ward-A';
-    const wIco    = WARD_ICON[wk]  || '';
-    const splArr  = Array.isArray(p.splints) ? p.splints : [];
-    const lat     = p.laterality || 'Both';
-    const latCls  = lat === 'Left' ? 'lat-L' : lat === 'Right' ? 'lat-R' : 'lat-B';
-    const latIco  = lat === 'Left' ? '👈' : lat === 'Right' ? '👉' : '👐';
+    const pw   = withChecks(p);
+    const vals = SLOTS.map(s => pw[s]);
+    const wk   = p.ward || 'Ward A';
+    const wCls = WARD_CLASS[wk] || 'ward-A';
+    const wIco = WARD_ICON[wk]  || '';
 
-    // Check cells
     const checkCells = SLOTS.map(s => {
       const v = pw[s];
-      let cls = '', inner = '';
-      if      (v === true)  { cls = 'checked'; inner = '<span class="ck-tick">✓</span>'; }
-      else if (v === false) { cls = 'missed';  inner = '<span class="ck-cross">✗</span>'; }
+      let cls='', inner='';
+      if      (v===true)  { cls='checked'; inner='<span class="ck-tick">✓</span>'; }
+      else if (v===false) { cls='missed';  inner='<span class="ck-cross">✗</span>'; }
       return `<td class="cc"><div class="cw ${cls}" data-pid="${p.id}" data-slot="${s}" title="Tap to toggle">${inner}</div></td>`;
     }).join('');
 
-    // Status
     const rec = vals.filter(v => v !== null);
     let stHtml;
     if (!rec.length)                   stHtml = '<span class="rs rs-pend">⏳ Pending</span>';
@@ -862,7 +916,6 @@ function render() {
     else if (vals.every(v=>v===false)) stHtml = '<span class="rs rs-none">❌ Not Done</span>';
     else                               stHtml = `<span class="rs rs-part">⚠️ ${vals.filter(v=>v===true).length}/3</span>`;
 
-    // Compliance %
     let ppHtml;
     if (!rec.length) {
       ppHtml = '<span class="pp pp-none">—</span>';
@@ -872,15 +925,10 @@ function render() {
       ppHtml = `<span class="pp ${pc}">${pct}%</span>`;
     }
 
-    // Splints
-    const splHtml = splArr.length
-      ? `<div class="splint-wrap">${splArr.map(s=>`<span class="splint-badge">${SPLINT_ICON[s]||'🩹'} ${esc(s)}</span>`).join('')}</div>`
-      : '<span style="color:#94a3b8;font-size:0.72rem">—</span>';
-
-    // Inline edit row
+    // Inline edit row — splint builder container only; built dynamically on open
     const editRow = `
       <tr class="edit-row" id="erow_${p.id}" style="display:none">
-        <td colspan="13" style="padding:0">
+        <td colspan="12" style="padding:0">
           <div class="ebox">
             <div class="ebox-title">✏️ Editing: <strong>${esc(maskName(p.name))}</strong> <span style="color:var(--slate-light);font-size:0.8rem">(${esc(maskMrn(p.mrn))})</span></div>
             <div class="ebox-fields">
@@ -902,22 +950,9 @@ function render() {
                   ${['Ward A','Ward B','ICU 1','ICU 2'].map(w=>`<option value="${w}"${wk===w?' selected':''}>${WARD_ICON[w]} ${w}</option>`).join('')}
                 </select>
               </div>
-              <div class="eg" style="max-width:280px">
-                <label>Laterality</label>
-                <div class="lat-select" id="ef_lat_${p.id}">
-                  <div class="lat-opt${lat==='Left'?' selected':''}" onclick="selectLat(this,'ef_lat_${p.id}')"><input type="radio" name="ef_lat_${p.id}" value="Left"${lat==='Left'?' checked':''}> 👈 Left</div>
-                  <div class="lat-opt${lat==='Right'?' selected':''}" onclick="selectLat(this,'ef_lat_${p.id}')"><input type="radio" name="ef_lat_${p.id}" value="Right"${lat==='Right'?' checked':''}> 👉 Right</div>
-                  <div class="lat-opt${lat==='Both'?' selected':''}" onclick="selectLat(this,'ef_lat_${p.id}')"><input type="radio" name="ef_lat_${p.id}" value="Both"${lat==='Both'?' checked':''}> 👐 Both</div>
-                </div>
-              </div>
               <div class="eg eg-full">
-                <label>Splint Type(s)</label>
-                <div class="splint-checks">
-                  ${ALL_SPLINTS.map(st=>`
-                    <div class="splint-chip${splArr.includes(st)?' selected':''}" onclick="toggleChip(this)">
-                      <input type="checkbox" value="${st}"${splArr.includes(st)?' checked':''}> ${SPLINT_ICON[st]||'🩹'} ${st}
-                    </div>`).join('')}
-                </div>
+                <label>Splints &amp; Laterality</label>
+                <div class="splint-builder" id="esb_${p.id}"></div>
               </div>
             </div>
             <div class="ebox-actions">
@@ -936,8 +971,7 @@ function render() {
         <td><span class="mrn-badge">${esc(maskMrn(p.mrn))}</span></td>
         <td><span class="room-badge">${esc(p.room)}</span></td>
         <td><span class="ward-badge ${wCls}">${wIco} ${esc(wk)}</span></td>
-        <td>${splHtml}</td>
-        <td><span class="lat-badge ${latCls}">${latIco} ${esc(lat)}</span></td>
+        <td>${splintBadgeHtml(p.splints)}</td>
         ${checkCells}
         <td>${stHtml}</td>
         <td style="text-align:center">${ppHtml}</td>
@@ -954,9 +988,9 @@ function render() {
   updateStats();
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // RENDER: ARCHIVE
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 function toggleArchive() {
   document.getElementById('archBody').classList.toggle('open');
   document.getElementById('archChev').classList.toggle('open');
@@ -969,20 +1003,23 @@ function renderArchive() {
   document.getElementById('archCount').textContent = archivedPatients.length;
   panel.style.display = archivedPatients.length ? 'block' : 'none';
   if (!archivedPatients.length) { body.innerHTML = ''; return; }
-  body.innerHTML = archivedPatients.map(p => `
+  body.innerHTML = archivedPatients.map(p => {
+    const splintStr = p.splints.map(s => `${s.name} (${LAT_LABEL[s.lat]||'Both'})`).join(', ') || '—';
+    return `
     <div class="arch-row">
       <div class="arch-row-info">
         <div class="arch-row-name">${esc(maskName(p.name))} <span class="mrn-badge" style="font-size:0.68rem">${esc(maskMrn(p.mrn))}</span></div>
-        <div class="arch-row-meta">${esc(p.room)} · ${WARD_ICON[p.ward]||''} ${esc(p.ward)} · ${esc(p.splints.join(', ')||'—')}</div>
+        <div class="arch-row-meta">${esc(p.room)} · ${WARD_ICON[p.ward]||''} ${esc(p.ward)} · ${esc(splintStr)}</div>
       </div>
       <button class="btn-restore" onclick="restorePatient('${p.id}')">↩ Restore</button>
       <button class="btn-del-arch" onclick="deletePermanently('${p.id}', true)">🗑 Delete</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // STATS & COMPLIANCE
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 function updateStats() {
   let allDone=0, partial=0, noneDone=0, totApp=0, totRec=0;
   patients.forEach(p => {
@@ -1015,11 +1052,11 @@ function updateStats() {
     compSub.textContent = 'Tick slot boxes to calculate compliance';
     compRat.style.display = 'none';
   } else {
-    const pct = Math.round((totApp / totRec) * 100);
-    dialFill.style.strokeDashoffset = C - (C * pct / 100);
+    const pct = Math.round((totApp/totRec)*100);
+    dialFill.style.strokeDashoffset = C - (C*pct/100);
     dialPct.textContent = pct + '%';
     compSub.textContent = `${totApp} of ${totRec} recorded slots applied`;
-    let rT, rC, stroke;
+    let rT,rC,stroke;
     if      (pct>=90) { rT='🟢 Excellent';         rC='rating-excellent'; stroke='#10b981'; }
     else if (pct>=75) { rT='🟡 Good';              rC='rating-good';      stroke='#f59e0b'; }
     else if (pct>=50) { rT='🟠 Needs Improvement'; rC='rating-partial';   stroke='#f59e0b'; }
@@ -1030,106 +1067,91 @@ function updateStats() {
     compRat.textContent = rT;
   }
 
-  // Ward cards
   const WARDS = [
-    { key:'Ward A', color:'#7c3aed', bar:'#a78bfa' },
-    { key:'Ward B', color:'#b45309', bar:'#fcd34d' },
-    { key:'ICU 1',  color:'#991b1b', bar:'#fca5a5' },
-    { key:'ICU 2',  color:'#075985', bar:'#7dd3fc' },
+    {key:'Ward A', color:'#7c3aed', bar:'#a78bfa'},
+    {key:'Ward B', color:'#b45309', bar:'#fcd34d'},
+    {key:'ICU 1',  color:'#991b1b', bar:'#fca5a5'},
+    {key:'ICU 2',  color:'#075985', bar:'#7dd3fc'},
   ];
   document.getElementById('wardGrid').innerHTML = WARDS.map(w => {
     const wp = patients.filter(p => p.ward === w.key);
-    if (!wp.length) return `<div class="wc-card">
-      <div class="wc-name" style="color:${w.color}">${w.key}</div>
-      <div class="wc-pct" style="color:#94a3b8">—</div>
-      <div class="wc-bar-wrap"><div class="wc-bar" style="width:0;background:${w.bar}"></div></div>
-      <div class="wc-sub">No patients</div></div>`;
-    let wA=0, wR=0;
+    if (!wp.length) return `<div class="wc-card"><div class="wc-name" style="color:${w.color}">${w.key}</div><div class="wc-pct" style="color:#94a3b8">—</div><div class="wc-bar-wrap"><div class="wc-bar" style="width:0;background:${w.bar}"></div></div><div class="wc-sub">No patients</div></div>`;
+    let wA=0,wR=0;
     wp.forEach(p => {
       const pw = withChecks(p);
       SLOTS.forEach(s => { if (pw[s]!==null){wR++; if(pw[s]===true)wA++;} });
     });
     const pct = wR ? Math.round((wA/wR)*100) : null;
-    return `<div class="wc-card">
-      <div class="wc-name" style="color:${w.color}">${w.key}</div>
-      <div class="wc-pct" style="color:${w.color}">${pct!==null?pct+'%':'—'}</div>
-      <div class="wc-bar-wrap"><div class="wc-bar" style="width:${pct||0}%;background:${w.bar}"></div></div>
-      <div class="wc-sub">${wp.length} patient${wp.length!==1?'s':''} · ${wA}/${wR}</div></div>`;
+    return `<div class="wc-card"><div class="wc-name" style="color:${w.color}">${w.key}</div><div class="wc-pct" style="color:${w.color}">${pct!==null?pct+'%':'—'}</div><div class="wc-bar-wrap"><div class="wc-bar" style="width:${pct||0}%;background:${w.bar}"></div></div><div class="wc-sub">${wp.length} patient${wp.length!==1?'s':''} · ${wA}/${wR}</div></div>`;
   }).join('');
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // EXCEL EXPORT
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 function exportExcel() {
   if (!patients.length) { showToast('⚠️ No patients to export', true); return; }
   const wb = XLSX.utils.book_new();
-  const sl = v => v===true ? 'Applied ✓' : v===false ? 'Missed ✗' : 'Not Recorded';
+  const sl = v => v===true?'Applied ✓':v===false?'Missed ✗':'Not Recorded';
 
-  // Sheet 1: Audit
   const rows = [
     ['SPLINT APPLICATION AUDIT REPORT'],
     [`Audit Date: ${auditDateKey||'N/A'}`, '','','','','','','',`Generated: ${new Date().toLocaleDateString('en-GB')}`],
     [],
-    ['#','Patient Name','MRN','Room','Ward','Splint Type(s)','Laterality','Morning (6–8 AM)','Midday (10 AM–12 PM)','Afternoon (2–4 PM)','Status','Compliance %'],
+    ['#','Patient Name','MRN','Room','Ward','Splints & Laterality','Morning (6–8 AM)','Midday (10–12 PM)','Afternoon (2–4 PM)','Status','Compliance %'],
     ...patients.map((p,i) => {
       const pw  = withChecks(p);
       const vs  = SLOTS.map(s=>pw[s]);
       const rec = vs.filter(v=>v!==null);
       const pct = rec.length ? Math.round((vs.filter(v=>v===true).length/3)*100)+'%' : '—';
+      const splintStr = p.splints.map(s=>`${s.name} (${LAT_LABEL[s.lat]||'Both'})`).join('; ');
       return [i+1, p.name, p.mrn||'', p.room, p.ward||'Ward A',
-        p.splints.join(', '), p.laterality||'Both',
-        sl(pw.morning), sl(pw.midday), sl(pw.afternoon),
+        splintStr, sl(pw.morning), sl(pw.midday), sl(pw.afternoon),
         statusOf(p), pct];
     })
   ];
   const ws1 = XLSX.utils.aoa_to_sheet(rows);
-  ws1['!cols'] = [{wch:4},{wch:24},{wch:12},{wch:12},{wch:10},{wch:22},{wch:12},{wch:20},{wch:22},{wch:22},{wch:16},{wch:12}];
-  ws1['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:11} }];
+  ws1['!cols'] = [{wch:4},{wch:24},{wch:12},{wch:12},{wch:10},{wch:34},{wch:20},{wch:20},{wch:20},{wch:16},{wch:12}];
+  ws1['!merges'] = [{s:{r:0,c:0},e:{r:0,c:10}}];
   XLSX.utils.book_append_sheet(wb, ws1, 'Audit Report');
 
-  // Sheet 2: Summary
   const wards = ['Ward A','Ward B','ICU 1','ICU 2'];
   const s2 = [
-    ['WARD SUMMARY'], [`Audit Date: ${auditDateKey||'N/A'}`], [],
+    ['WARD SUMMARY'],[`Audit Date: ${auditDateKey||'N/A'}`],[],
     ['Ward','Total','Complete','Partial','Not Done','Pending','Compliance %'],
     ...wards.map(ward => {
-      const wp=patients.filter(p=>p.ward===ward);
+      const wp = patients.filter(p=>p.ward===ward);
       let c=0,pa=0,n=0,pe=0;
       wp.forEach(p=>{const s=statusOf(p); if(s==='Complete')c++; else if(s.startsWith('Partial'))pa++; else if(s==='Not Done')n++; else pe++;});
-      return [ward, wp.length, c, pa, n, pe, wp.length ? Math.round((c/wp.length)*100)+'%':'N/A'];
+      return [ward,wp.length,c,pa,n,pe, wp.length?Math.round((c/wp.length)*100)+'%':'N/A'];
     }),
     [],
-    (() => {
+    (()=>{
       let c=0,pa=0,n=0,pe=0;
       patients.forEach(p=>{const s=statusOf(p); if(s==='Complete')c++; else if(s.startsWith('Partial'))pa++; else if(s==='Not Done')n++; else pe++;});
-      return ['TOTAL',patients.length,c,pa,n,pe, patients.length?Math.round((c/patients.length)*100)+'%':'N/A'];
+      return ['TOTAL',patients.length,c,pa,n,pe,patients.length?Math.round((c/patients.length)*100)+'%':'N/A'];
     })()
   ];
   const ws2 = XLSX.utils.aoa_to_sheet(s2);
   ws2['!cols'] = [{wch:12},{wch:10},{wch:12},{wch:10},{wch:10},{wch:10},{wch:14}];
-  ws2['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:6} }];
+  ws2['!merges'] = [{s:{r:0,c:0},e:{r:0,c:6}}];
   XLSX.utils.book_append_sheet(wb, ws2, 'Ward Summary');
 
   XLSX.writeFile(wb, `Splint_Audit_${auditDateKey||'export'}.xlsx`);
 }
 
-// ═══════════════════════════════════════════════════════
-// KEYBOARD SHORTCUT: Enter to add patient
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// KEYBOARD: Enter to add patient
+// ═══════════════════════════════════════════════════
 document.addEventListener('keydown', e => {
-  if (e.key==='Enter' && document.getElementById('addForm').classList.contains('open')) {
-    addPatient();
-  }
+  if (e.key==='Enter' && document.getElementById('addForm').classList.contains('open')) addPatient();
 });
 
-// ═══════════════════════════════════════════════════════
-// SERVICE WORKER REGISTRATION (PWA)
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// SERVICE WORKER (PWA)
+// ═══════════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  });
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 </script>
 </body>
