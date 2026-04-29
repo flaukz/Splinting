@@ -1,0 +1,27 @@
+{
+  "name": "Splint Application Audit",
+  "short_name": "Splint Audit",
+  "description": "Daily splint compliance tracker for nursing and HCA staff",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0f766e",
+  "background_color": "#f8fafc",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["medical", "health", "productivity"],
+  "lang": "en-GB"
+}
