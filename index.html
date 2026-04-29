@@ -19,9 +19,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --teal: #0d9488; --teal-light: #14b8a6; --teal-dark: #0f766e;
+    --teal-light: #14b8a6; --teal-dark: #0f766e;
     --teal-bg: #f0fdfa; --teal-border: #99f6e4;
-    --slate: #1e293b; --slate-mid: #334155; --slate-light: #64748b;
+    --slate: #1e293b; --slate-light: #64748b;
     --bg: #f8fafc;
     --red: #ef4444; --red-light: #fee2e2;
     --green: #10b981; --green-light: #d1fae5;
@@ -149,7 +149,7 @@
   .ward-ICU2 { background:#e0f2fe; color:#075985; border:1px solid #7dd3fc; }
   .room-badge { font-family:'DM Mono',monospace; font-size:0.75rem; font-weight:500; background:var(--teal-bg); color:var(--teal-dark); padding:2px 8px; border-radius:5px; border:1px solid var(--teal-border); white-space:nowrap; }
   .mrn-badge  { font-family:'DM Mono',monospace; font-size:0.75rem; font-weight:500; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:5px; border:1px solid #cbd5e1; white-space:nowrap; letter-spacing:1px; }
-  .splint-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.7rem; font-weight:600; padding:2px 7px; border-radius:5px; white-space:nowrap; background:#f1f5f9; color:var(--slate-mid); border:1px solid #cbd5e1; margin:1px; }
+  .splint-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.7rem; font-weight:600; padding:2px 7px; border-radius:5px; white-space:nowrap; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; margin:1px; }
   .splint-wrap { display:flex; flex-wrap:wrap; }
 
   /* LATERALITY BADGE */
@@ -427,7 +427,7 @@
         </tr>
       </thead>
       <tbody id="tBody">
-        <tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients yet — click <strong>Add Patient</strong> to begin.</p></div></td></tr>
+        <tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients yet — click <strong>Add Patient</strong> to begin.</p></div></td></tr>
       </tbody>
     </table>
   </div>
@@ -535,16 +535,6 @@ function getChips(containerId) {
   return Array.from(
     document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)
   ).map(cb => cb.value);
-}
-
-function setChips(containerId, splints) {
-  const arr = Array.isArray(splints) ? splints : [];
-  document.querySelectorAll(`#${containerId} .splint-chip`).forEach(chip => {
-    const cb = chip.querySelector('input[type="checkbox"]');
-    if (!cb) return;
-    cb.checked = arr.includes(cb.value);
-    chip.classList.toggle('selected', cb.checked);
-  });
 }
 
 // Called by onclick on splint chips (defined in HTML)
@@ -729,8 +719,6 @@ async function toggleCheck(pid, slot) {
   render();
   await upsertCheck(pid);
 }
-
-// Notes auto-save removed
 
 async function archivePatient(id) {
   if (!confirm('Move this patient to the archive? You can restore them later.')) return;
@@ -984,7 +972,7 @@ function renderArchive() {
   body.innerHTML = archivedPatients.map(p => `
     <div class="arch-row">
       <div class="arch-row-info">
-        <div class="arch-row-name">${esc(p.name)} <span class="mrn-badge" style="font-size:0.68rem">${esc(maskMrn(p.mrn))}</span></div>
+        <div class="arch-row-name">${esc(maskName(p.name))} <span class="mrn-badge" style="font-size:0.68rem">${esc(maskMrn(p.mrn))}</span></div>
         <div class="arch-row-meta">${esc(p.room)} · ${WARD_ICON[p.ward]||''} ${esc(p.ward)} · ${esc(p.splints.join(', ')||'—')}</div>
       </div>
       <button class="btn-restore" onclick="restorePatient('${p.id}')">↩ Restore</button>
