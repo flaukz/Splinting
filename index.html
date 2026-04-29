@@ -522,6 +522,15 @@ function statusOf(p) {
   return `Partial (${vals.filter(v=>v===true).length}/3)`;
 }
 
+// Sort patients array alphanumerically by room number
+function sortPatients() {
+  patients.sort((a, b) => {
+    const ra = (a.room || '').trim().toLowerCase();
+    const rb = (b.room || '').trim().toLowerCase();
+    return ra.localeCompare(rb, undefined, { numeric: true, sensitivity: 'base' });
+  });
+}
+
 function getChips(containerId) {
   return Array.from(
     document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)
@@ -624,6 +633,7 @@ async function loadPatients() {
   const all = (data || []).map(mapRow);
   patients         = all.filter(p => !p.archived);
   archivedPatients = all.filter(p =>  p.archived);
+  sortPatients();
   showToast('🟢 Connected — ' + patients.length + ' patient(s)');
   renderArchive();
 }
@@ -694,6 +704,7 @@ async function addPatient() {
       .select().single();
     if (error) throw error;
     patients.push(mapRow(data));
+    sortPatients();
     ['newName','newMrn','newRoom'].forEach(id => document.getElementById(id).value = '');
     setChips('newChips', []);
     setLat('newLat', 'Both');
@@ -740,6 +751,7 @@ async function restorePatient(id) {
     await dbUpdate(id, { archived: false });
     const p = archivedPatients.find(p => p.id === id);
     if (p) { archivedPatients = archivedPatients.filter(q => q.id !== id); p.archived = false; patients.push(p); }
+    sortPatients();
     render(); renderArchive();
     showToast('✅ Patient restored');
   } catch (err) { showToast('⚠️ Restore failed: ' + err.message, true); }
@@ -804,6 +816,7 @@ tBody.addEventListener('click', async e => {
       setLoading(true);
       await dbUpdate(id, { name, mrn, room, ward, splints, laterality });
       p.name = name; p.mrn = mrn; p.room = room; p.ward = ward; p.splints = splints; p.laterality = laterality;
+      sortPatients();
       const row = document.getElementById('erow_' + id);
       if (row) row.style.display = 'none';
       render();
