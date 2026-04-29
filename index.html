@@ -152,6 +152,19 @@
   .splint-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.7rem; font-weight:600; padding:2px 7px; border-radius:5px; white-space:nowrap; background:#f1f5f9; color:var(--slate-mid); border:1px solid #cbd5e1; margin:1px; }
   .splint-wrap { display:flex; flex-wrap:wrap; }
 
+  /* LATERALITY BADGE */
+  .lat-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.72rem; font-weight:700; padding:2px 9px; border-radius:20px; white-space:nowrap; }
+  .lat-L    { background:#ede9fe; color:#5b21b6; border:1px solid #c4b5fd; }
+  .lat-R    { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
+  .lat-B    { background:#e0f2fe; color:#075985; border:1px solid #7dd3fc; }
+
+  /* LATERALITY SELECTOR in form */
+  .lat-select { display:flex; gap:6px; margin-top:3px; }
+  .lat-opt { display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:7px 14px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.15s; user-select:none; color:var(--slate); }
+  .lat-opt:hover { border-color:var(--teal); background:var(--teal-bg); }
+  .lat-opt input[type="radio"] { display:none; }
+  .lat-opt.selected { border-color:var(--teal); background:var(--teal-bg); color:var(--teal-dark); }
+
   /* ── TABLE ── */
   .table-wrapper { background:white; border:1.5px solid var(--border); border-radius:14px; box-shadow:var(--shadow); overflow-x:auto; margin-bottom:18px; }
   table { width:100%; border-collapse:collapse; min-width:920px; }
@@ -362,6 +375,14 @@
           <div class="splint-chip" onclick="toggleChip(this)"><input type="checkbox" value="Knee Immobilizer"> 🦵 Knee Immobilizer</div>
         </div>
       </div>
+      <div class="form-group" style="max-width:260px">
+        <label>Laterality</label>
+        <div class="lat-select" id="newLat">
+          <div class="lat-opt" onclick="selectLat(this,'newLat')"><input type="radio" name="newLat" value="Left"> 👈 Left</div>
+          <div class="lat-opt" onclick="selectLat(this,'newLat')"><input type="radio" name="newLat" value="Right"> 👉 Right</div>
+          <div class="lat-opt selected" onclick="selectLat(this,'newLat')"><input type="radio" name="newLat" value="Both" checked> 👐 Both</div>
+        </div>
+      </div>
       <div class="form-group" style="max-width:220px">
         <label>Notes (optional)</label>
         <input type="text" id="newNotes" placeholder="e.g. Right hand only">
@@ -405,6 +426,7 @@
           <th>Room</th>
           <th>Ward</th>
           <th>Splint(s)</th>
+          <th>Side</th>
           <th class="tc">Morning<span class="tsub">6–8 AM</span></th>
           <th class="tc">Midday<span class="tsub">10 AM–12 PM</span></th>
           <th class="tc">Afternoon<span class="tsub">2–4 PM</span></th>
@@ -415,7 +437,7 @@
         </tr>
       </thead>
       <tbody id="tBody">
-        <tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients yet — click <strong>Add Patient</strong> to begin.</p></div></td></tr>
+        <tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients yet — click <strong>Add Patient</strong> to begin.</p></div></td></tr>
       </tbody>
     </table>
   </div>
@@ -484,14 +506,15 @@ function maskMrn(mrn) {
 
 function mapRow(p) {
   return {
-    id:       p.id,
-    name:     p.name     || '',
-    mrn:      p.mrn      || '',
-    room:     p.room     || '',
-    ward:     p.ward     || 'Ward A',
-    splints:  Array.isArray(p.splints) ? p.splints : [],
-    notes:    p.notes    || '',
-    archived: !!p.archived,
+    id:          p.id,
+    name:        p.name        || '',
+    mrn:         p.mrn         || '',
+    room:        p.room        || '',
+    ward:        p.ward        || 'Ward A',
+    splints:     Array.isArray(p.splints) ? p.splints : [],
+    laterality:  p.laterality  || 'Both',
+    notes:       p.notes       || '',
+    archived:    !!p.archived,
   };
 }
 
@@ -532,6 +555,26 @@ function toggleChip(el) {
   if (!cb) return;
   cb.checked = !cb.checked;
   el.classList.toggle('selected', cb.checked);
+}
+
+// Laterality selector helpers
+function selectLat(el, groupId) {
+  document.querySelectorAll(`#${groupId} .lat-opt`).forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const rb = el.querySelector('input[type="radio"]');
+  if (rb) rb.checked = true;
+}
+function getLat(groupId) {
+  const checked = document.querySelector(`#${groupId} input[type="radio"]:checked`);
+  return checked ? checked.value : 'Both';
+}
+function setLat(groupId, val) {
+  document.querySelectorAll(`#${groupId} .lat-opt`).forEach(o => {
+    const rb = o.querySelector('input[type="radio"]');
+    const match = rb && rb.value === val;
+    if (rb) rb.checked = match;
+    o.classList.toggle('selected', match);
+  });
 }
 
 // ═══════════════════════════════════════════════════════
@@ -641,12 +684,13 @@ function toggleForm() {
 }
 
 async function addPatient() {
-  const name    = document.getElementById('newName').value.trim();
-  const mrn     = document.getElementById('newMrn').value.trim();
-  const room    = document.getElementById('newRoom').value.trim();
-  const ward    = document.getElementById('newWard').value;
-  const splints = getChips('newChips');
-  const notes   = document.getElementById('newNotes').value.trim();
+  const name       = document.getElementById('newName').value.trim();
+  const mrn        = document.getElementById('newMrn').value.trim();
+  const room       = document.getElementById('newRoom').value.trim();
+  const ward       = document.getElementById('newWard').value;
+  const splints    = getChips('newChips');
+  const laterality = getLat('newLat');
+  const notes      = document.getElementById('newNotes').value.trim();
 
   if (!name)           { document.getElementById('newName').focus(); showToast('⚠️ Enter patient name', true);  return; }
   if (!room)           { document.getElementById('newRoom').focus(); showToast('⚠️ Enter room number', true);   return; }
@@ -658,12 +702,13 @@ async function addPatient() {
   try {
     setLoading(true);
     const { data, error } = await sb.from('patients')
-      .insert({ name, mrn, room, ward, splints, notes: notes || '' })
+      .insert({ name, mrn, room, ward, splints, laterality, notes: notes || '' })
       .select().single();
     if (error) throw error;
     patients.push(mapRow(data));
     ['newName','newMrn','newRoom','newNotes'].forEach(id => document.getElementById(id).value = '');
     setChips('newChips', []);
+    setLat('newLat', 'Both');
     document.getElementById('addForm').classList.remove('open');
     render();
     showToast('✅ Patient saved');
@@ -762,11 +807,12 @@ tBody.addEventListener('click', async e => {
   if (action === 'save') {
     const p = patients.find(p => p.id === id);
     if (!p) return;
-    const name    = document.getElementById('ef_n_' + id).value.trim();
-    const mrn     = document.getElementById('ef_m_' + id).value.trim();
-    const room    = document.getElementById('ef_r_' + id).value.trim();
-    const ward    = document.getElementById('ef_w_' + id).value;
-    const splints = Array.from(
+    const name       = document.getElementById('ef_n_' + id).value.trim();
+    const mrn        = document.getElementById('ef_m_' + id).value.trim();
+    const room       = document.getElementById('ef_r_' + id).value.trim();
+    const ward       = document.getElementById('ef_w_' + id).value;
+    const laterality = getLat('ef_lat_' + id);
+    const splints    = Array.from(
       document.querySelectorAll(`#erow_${id} .splint-chip input[type="checkbox"]:checked`)
     ).map(cb => cb.value);
     if (!name)           { document.getElementById('ef_n_' + id).focus(); return; }
@@ -774,8 +820,8 @@ tBody.addEventListener('click', async e => {
     if (!splints.length) { showToast('⚠️ Select at least one splint type', true); return; }
     try {
       setLoading(true);
-      await dbUpdate(id, { name, mrn, room, ward, splints });
-      p.name = name; p.mrn = mrn; p.room = room; p.ward = ward; p.splints = splints;
+      await dbUpdate(id, { name, mrn, room, ward, splints, laterality });
+      p.name = name; p.mrn = mrn; p.room = room; p.ward = ward; p.splints = splints; p.laterality = laterality;
       const row = document.getElementById('erow_' + id);
       if (row) row.style.display = 'none';
       render();
@@ -803,11 +849,11 @@ function render() {
     : patients.filter(p => p.ward === activeFilter);
 
   if (!patients.length) {
-    tBody.innerHTML = `<tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients yet — click <strong>Add Patient</strong> to begin.</p></div></td></tr>`;
+    tBody.innerHTML = `<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🩹</div><p>No patients yet — click <strong>Add Patient</strong> to begin.</p></div></td></tr>`;
     updateStats(); return;
   }
   if (!visible.length) {
-    tBody.innerHTML = `<tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🏥</div><p>No patients in this ward.</p></div></td></tr>`;
+    tBody.innerHTML = `<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">🏥</div><p>No patients in this ward.</p></div></td></tr>`;
     updateStats(); return;
   }
 
@@ -818,6 +864,9 @@ function render() {
     const wCls    = WARD_CLASS[wk] || 'ward-A';
     const wIco    = WARD_ICON[wk]  || '';
     const splArr  = Array.isArray(p.splints) ? p.splints : [];
+    const lat     = p.laterality || 'Both';
+    const latCls  = lat === 'Left' ? 'lat-L' : lat === 'Right' ? 'lat-R' : 'lat-B';
+    const latIco  = lat === 'Left' ? '👈' : lat === 'Right' ? '👉' : '👐';
 
     // Check cells
     const checkCells = SLOTS.map(s => {
@@ -854,7 +903,7 @@ function render() {
     // Inline edit row
     const editRow = `
       <tr class="edit-row" id="erow_${p.id}" style="display:none">
-        <td colspan="13" style="padding:0">
+        <td colspan="14" style="padding:0">
           <div class="ebox">
             <div class="ebox-title">✏️ Editing: <strong>${esc(maskName(p.name))}</strong> <span style="color:var(--slate-light);font-size:0.8rem">(${esc(maskMrn(p.mrn))})</span></div>
             <div class="ebox-fields">
@@ -875,6 +924,14 @@ function render() {
                 <select id="ef_w_${p.id}">
                   ${['Ward A','Ward B','ICU 1','ICU 2'].map(w=>`<option value="${w}"${wk===w?' selected':''}>${WARD_ICON[w]} ${w}</option>`).join('')}
                 </select>
+              </div>
+              <div class="eg" style="max-width:280px">
+                <label>Laterality</label>
+                <div class="lat-select" id="ef_lat_${p.id}">
+                  <div class="lat-opt${lat==='Left'?' selected':''}" onclick="selectLat(this,'ef_lat_${p.id}')"><input type="radio" name="ef_lat_${p.id}" value="Left"${lat==='Left'?' checked':''}> 👈 Left</div>
+                  <div class="lat-opt${lat==='Right'?' selected':''}" onclick="selectLat(this,'ef_lat_${p.id}')"><input type="radio" name="ef_lat_${p.id}" value="Right"${lat==='Right'?' checked':''}> 👉 Right</div>
+                  <div class="lat-opt${lat==='Both'?' selected':''}" onclick="selectLat(this,'ef_lat_${p.id}')"><input type="radio" name="ef_lat_${p.id}" value="Both"${lat==='Both'?' checked':''}> 👐 Both</div>
+                </div>
               </div>
               <div class="eg eg-full">
                 <label>Splint Type(s)</label>
@@ -903,6 +960,7 @@ function render() {
         <td><span class="room-badge">${esc(p.room)}</span></td>
         <td><span class="ward-badge ${wCls}">${wIco} ${esc(wk)}</span></td>
         <td>${splHtml}</td>
+        <td><span class="lat-badge ${latCls}">${latIco} ${esc(lat)}</span></td>
         ${checkCells}
         <td>${stHtml}</td>
         <td style="text-align:center">${ppHtml}</td>
@@ -1037,20 +1095,21 @@ function exportExcel() {
     ['SPLINT APPLICATION AUDIT REPORT'],
     [`Audit Date: ${auditDateKey||'N/A'}`, '','','','','','','',`Generated: ${new Date().toLocaleDateString('en-GB')}`],
     [],
-    ['#','Patient Name','MRN','Room','Ward','Splint Type(s)','Morning (6–8 AM)','Midday (10 AM–12 PM)','Afternoon (2–4 PM)','Status','Compliance %','Notes'],
+    ['#','Patient Name','MRN','Room','Ward','Splint Type(s)','Laterality','Morning (6–8 AM)','Midday (10 AM–12 PM)','Afternoon (2–4 PM)','Status','Compliance %','Notes'],
     ...patients.map((p,i) => {
       const pw  = withChecks(p);
       const vs  = SLOTS.map(s=>pw[s]);
       const rec = vs.filter(v=>v!==null);
       const pct = rec.length ? Math.round((vs.filter(v=>v===true).length/3)*100)+'%' : '—';
       return [i+1, p.name, p.mrn||'', p.room, p.ward||'Ward A',
-        p.splints.join(', '), sl(pw.morning), sl(pw.midday), sl(pw.afternoon),
+        p.splints.join(', '), p.laterality||'Both',
+        sl(pw.morning), sl(pw.midday), sl(pw.afternoon),
         statusOf(p), pct, p.notes||''];
     })
   ];
   const ws1 = XLSX.utils.aoa_to_sheet(rows);
-  ws1['!cols'] = [{wch:4},{wch:24},{wch:12},{wch:12},{wch:10},{wch:22},{wch:20},{wch:22},{wch:22},{wch:16},{wch:12},{wch:28}];
-  ws1['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:11} }];
+  ws1['!cols'] = [{wch:4},{wch:24},{wch:12},{wch:12},{wch:10},{wch:22},{wch:12},{wch:20},{wch:22},{wch:22},{wch:16},{wch:12},{wch:28}];
+  ws1['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:12} }];
   XLSX.utils.book_append_sheet(wb, ws1, 'Audit Report');
 
   // Sheet 2: Summary
