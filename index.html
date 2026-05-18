@@ -282,7 +282,7 @@
     </div>
     <div class="header-right">
       <div class="week-badge" id="todayBadge">—</div>
-      <button class="btn btn-outline" onclick="exportExcel()">📊 Excel</button>
+      <button class="btn btn-outline" onclick="exportExcel()">📊 Monthly Report</button>
       <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
     </div>
   </div>
@@ -1087,57 +1087,208 @@ function updateStats() {
 }
 
 // ═══════════════════════════════════════════════════
-// EXCEL EXPORT
+// EXCEL EXPORT — MONTHLY REPORT
 // ═══════════════════════════════════════════════════
-function exportExcel() {
+async function exportExcel() {
   if (!patients.length) { showToast('⚠️ No patients to export', true); return; }
-  const wb = XLSX.utils.book_new();
-  const sl = v => v===true?'Applied ✓':v===false?'Missed ✗':'Not Recorded';
+  if (!auditDateKey)    { showToast('⚠️ Please select a date first', true); return; }
 
-  const rows = [
-    ['SPLINT APPLICATION AUDIT REPORT'],
-    [`Audit Date: ${auditDateKey||'N/A'}`, '','','','','','','',`Generated: ${new Date().toLocaleDateString('en-GB')}`],
+  // ── Work out the full month range ─────────────────
+  const [year, month] = auditDateKey.split('-').map(Number);
+  const monthStart = `${year}-${String(month).padStart(2,'0')}-01`;
+  const lastDay    = new Date(year, month, 0).getDate();
+  const monthEnd   = `${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+  const monthName  = new Date(year, month-1, 1).toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+
+  // ── Collect all weekdays in the month ─────────────
+  const weekdays = [];
+  for (let d = 1; d <= lastDay; d++) {
+    const dt  = new Date(year, month-1, d);
+    const day = dt.getDay();
+    if (day >= 1 && day <= 5) {
+      weekdays.push(`${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+    }
+  }
+
+  showToast('⏳ Fetching monthly data…');
+  setLoading(true);
+
+  // ── Fetch ALL audit checks for this month ─────────
+  const { data: monthChecks, error } = await sb
+    .from('audit_checks')
+    .select('*')
+    .gte('audit_date', monthStart)
+    .lte('audit_date', monthEnd);
+
+  setLoading(false);
+
+  if (error) { showToast('⚠️ Could not fetch data: ' + error.message, true); return; }
+
+  // Index checks by patient_id + date
+  const checkMap = {};
+  (monthChecks || []).forEach(r => {
+    const key = `${r.patient_id}__${r.audit_date}`;
+    checkMap[key] = { morning: r.morning, midday: r.midday, afternoon: r.afternoon };
+  });
+
+  const sl  = v => v===true ? 'Applied ✓' : v===false ? 'Missed ✗' : '';
+  const wb  = XLSX.utils.book_new();
+
+  // ── Helper: status for a given check row ──────────
+  function checkStatus(c) {
+    if (!c) return 'Pending';
+    const vs = [c.morning, c.midday, c.afternoon];
+    const rec = vs.filter(v => v !== null);
+    if (!rec.length)                  return 'Pending';
+    if (vs.every(v => v === true))    return 'Complete';
+    if (vs.every(v => v === false))   return 'Not Done';
+    return `Partial (${vs.filter(v=>v===true).length}/3)`;
+  }
+
+  function compPct(c) {
+    if (!c) return '—';
+    const vs  = [c.morning, c.midday, c.afternoon];
+    const rec = vs.filter(v => v !== null);
+    if (!rec.length) return '—';
+    return Math.round((vs.filter(v=>v===true).length / 3) * 100) + '%';
+  }
+
+  // ════════════════════════════════════════════════
+  // SHEET 1 — MONTHLY AUDIT LOG
+  // One row per patient per day (Pending days excluded)
+  // ════════════════════════════════════════════════
+  const logRows = [
+    [`SPLINT APPLICATION AUDIT — MONTHLY REPORT`],
+    [`Month: ${monthName}`, '', '', '', '', '', '', '', `Generated: ${new Date().toLocaleDateString('en-GB')}`],
+    [`Note: Days with no recorded splint application (Pending) are excluded from this report.`],
     [],
-    ['#','Patient Name','MRN','Room','Ward','Splints & Laterality','Morning (6–8 AM)','Midday (10–12 PM)','Afternoon (2–4 PM)','Status','Compliance %'],
-    ...patients.map((p,i) => {
-      const pw  = withChecks(p);
-      const vs  = SLOTS.map(s=>pw[s]);
-      const rec = vs.filter(v=>v!==null);
-      const pct = rec.length ? Math.round((vs.filter(v=>v===true).length/3)*100)+'%' : '—';
-      const splintStr = p.splints.map(s=>`${s.name} (${LAT_LABEL[s.lat]||'Both'})`).join('; ');
-      return [i+1, p.name, p.mrn||'', p.room, p.ward||'Ward A',
-        splintStr, sl(pw.morning), sl(pw.midday), sl(pw.afternoon),
-        statusOf(p), pct];
-    })
+    ['#', 'Patient Name', 'MRN', 'Room', 'Ward', 'Splints & Laterality', 'Audit Date', 'Morning (6–8 AM)', 'Midday (10–12 PM)', 'Afternoon (2–4 PM)', 'Status', 'Compliance %'],
   ];
-  const ws1 = XLSX.utils.aoa_to_sheet(rows);
-  ws1['!cols'] = [{wch:4},{wch:24},{wch:12},{wch:12},{wch:10},{wch:34},{wch:20},{wch:20},{wch:20},{wch:16},{wch:12}];
-  ws1['!merges'] = [{s:{r:0,c:0},e:{r:0,c:10}}];
-  XLSX.utils.book_append_sheet(wb, ws1, 'Audit Report');
 
-  const wards = ['Ward A','Ward B','ICU 1','ICU 2'];
-  const s2 = [
-    ['WARD SUMMARY'],[`Audit Date: ${auditDateKey||'N/A'}`],[],
-    ['Ward','Total','Complete','Partial','Not Done','Pending','Compliance %'],
-    ...wards.map(ward => {
-      const wp = patients.filter(p=>p.ward===ward);
-      let c=0,pa=0,n=0,pe=0;
-      wp.forEach(p=>{const s=statusOf(p); if(s==='Complete')c++; else if(s.startsWith('Partial'))pa++; else if(s==='Not Done')n++; else pe++;});
-      return [ward,wp.length,c,pa,n,pe, wp.length?Math.round((c/wp.length)*100)+'%':'N/A'];
-    }),
+  let rowNum = 0;
+  patients.forEach(p => {
+    const splintStr = p.splints.map(s => `${s.name} (${LAT_LABEL[s.lat]||'Both'})`).join('; ');
+    weekdays.forEach(date => {
+      const key = `${p.id}__${date}`;
+      const c   = checkMap[key];
+      const st  = checkStatus(c);
+      if (st === 'Pending') return; // ← exclude pending
+      rowNum++;
+      const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short'});
+      logRows.push([
+        rowNum,
+        p.name,
+        p.mrn || '',
+        p.room,
+        p.ward || 'Ward A',
+        splintStr,
+        displayDate,
+        sl(c?.morning),
+        sl(c?.midday),
+        sl(c?.afternoon),
+        st,
+        compPct(c),
+      ]);
+    });
+  });
+
+  if (rowNum === 0) {
+    logRows.push(['', 'No recorded audit data for this month (all days are Pending).']);
+  }
+
+  const ws1 = XLSX.utils.aoa_to_sheet(logRows);
+  ws1['!cols'] = [{wch:4},{wch:24},{wch:12},{wch:12},{wch:10},{wch:34},{wch:16},{wch:18},{wch:18},{wch:18},{wch:16},{wch:12}];
+  ws1['!merges'] = [
+    {s:{r:0,c:0}, e:{r:0,c:11}},
+    {s:{r:2,c:0}, e:{r:2,c:11}},
+  ];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Monthly Audit Log');
+
+  // ════════════════════════════════════════════════
+  // SHEET 2 — PATIENT SUMMARY
+  // One row per patient: total days audited, compliance % for the month
+  // ════════════════════════════════════════════════
+  const sumRows = [
+    [`PATIENT COMPLIANCE SUMMARY — ${monthName}`],
+    [`Excludes days with no recorded activity (Pending).`],
     [],
-    (()=>{
-      let c=0,pa=0,n=0,pe=0;
-      patients.forEach(p=>{const s=statusOf(p); if(s==='Complete')c++; else if(s.startsWith('Partial'))pa++; else if(s==='Not Done')n++; else pe++;});
-      return ['TOTAL',patients.length,c,pa,n,pe,patients.length?Math.round((c/patients.length)*100)+'%':'N/A'];
-    })()
+    ['Patient Name', 'MRN', 'Room', 'Ward', 'Days Audited', 'Complete Days', 'Partial Days', 'Not Done Days', 'Monthly Compliance %'],
   ];
-  const ws2 = XLSX.utils.aoa_to_sheet(s2);
-  ws2['!cols'] = [{wch:12},{wch:10},{wch:12},{wch:10},{wch:10},{wch:10},{wch:14}];
-  ws2['!merges'] = [{s:{r:0,c:0},e:{r:0,c:6}}];
-  XLSX.utils.book_append_sheet(wb, ws2, 'Ward Summary');
 
-  XLSX.writeFile(wb, `Splint_Audit_${auditDateKey||'export'}.xlsx`);
+  patients.forEach(p => {
+    let total=0, complete=0, partial=0, notDone=0, applied=0, recorded=0;
+    weekdays.forEach(date => {
+      const c  = checkMap[`${p.id}__${date}`];
+      const st = checkStatus(c);
+      if (st === 'Pending') return;
+      total++;
+      if (st === 'Complete') complete++;
+      else if (st.startsWith('Partial')) partial++;
+      else if (st === 'Not Done') notDone++;
+      if (c) {
+        const vs = [c.morning, c.midday, c.afternoon];
+        applied  += vs.filter(v => v === true).length;
+        recorded += vs.filter(v => v !== null).length;
+      }
+    });
+    if (total === 0) return; // also skip patients with all-Pending month
+    const monthPct = recorded > 0 ? Math.round((applied / recorded) * 100) + '%' : '—';
+    sumRows.push([p.name, p.mrn||'', p.room, p.ward||'Ward A', total, complete, partial, notDone, monthPct]);
+  });
+
+  if (sumRows.length === 4) {
+    sumRows.push(['No audited patients this month.']);
+  }
+
+  const ws2 = XLSX.utils.aoa_to_sheet(sumRows);
+  ws2['!cols'] = [{wch:24},{wch:12},{wch:12},{wch:10},{wch:14},{wch:16},{wch:14},{wch:14},{wch:20}];
+  ws2['!merges'] = [
+    {s:{r:0,c:0}, e:{r:0,c:8}},
+    {s:{r:1,c:0}, e:{r:1,c:8}},
+  ];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Patient Summary');
+
+  // ════════════════════════════════════════════════
+  // SHEET 3 — WARD SUMMARY
+  // ════════════════════════════════════════════════
+  const wardRows = [
+    [`WARD COMPLIANCE SUMMARY — ${monthName}`],
+    [],
+    ['Ward', 'Patients', 'Days Audited', 'Complete', 'Partial', 'Not Done', 'Monthly Compliance %'],
+  ];
+
+  ['Ward A','Ward B','ICU 1','ICU 2'].forEach(ward => {
+    const wp = patients.filter(p => p.ward === ward);
+    let total=0, complete=0, partial=0, notDone=0, applied=0, recorded=0;
+    wp.forEach(p => {
+      weekdays.forEach(date => {
+        const c  = checkMap[`${p.id}__${date}`];
+        const st = checkStatus(c);
+        if (st === 'Pending') return;
+        total++;
+        if (st === 'Complete') complete++;
+        else if (st.startsWith('Partial')) partial++;
+        else if (st === 'Not Done') notDone++;
+        if (c) {
+          const vs = [c.morning, c.midday, c.afternoon];
+          applied  += vs.filter(v => v === true).length;
+          recorded += vs.filter(v => v !== null).length;
+        }
+      });
+    });
+    const pct = recorded > 0 ? Math.round((applied/recorded)*100)+'%' : 'N/A';
+    wardRows.push([ward, wp.length, total, complete, partial, notDone, pct]);
+  });
+
+  const ws3 = XLSX.utils.aoa_to_sheet(wardRows);
+  ws3['!cols'] = [{wch:12},{wch:10},{wch:14},{wch:12},{wch:10},{wch:12},{wch:22}];
+  ws3['!merges'] = [{s:{r:0,c:0}, e:{r:0,c:6}}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Ward Summary');
+
+  // ── Download ──────────────────────────────────────
+  const filename = `Splint_Audit_${year}-${String(month).padStart(2,'0')}_Monthly_Report.xlsx`;
+  XLSX.writeFile(wb, filename);
+  showToast(`✅ Monthly report exported`);
 }
 
 // ═══════════════════════════════════════════════════
