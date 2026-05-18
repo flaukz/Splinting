@@ -1145,6 +1145,12 @@ async function exportExcel() {
     return `Partial (${vs.filter(v=>v===true).length}/3)`;
   }
 
+  // A day is "audited" only if at least one slot was explicitly ticked (true or false)
+  function isAudited(c) {
+    if (!c) return false;
+    return c.morning !== null || c.midday !== null || c.afternoon !== null;
+  }
+
   function compPct(c) {
     if (!c) return '—';
     const vs  = [c.morning, c.midday, c.afternoon];
@@ -1171,8 +1177,7 @@ async function exportExcel() {
     weekdays.forEach(date => {
       const key = `${p.id}__${date}`;
       const c   = checkMap[key];
-      const st  = checkStatus(c);
-      if (st === 'Pending') return; // ← exclude pending
+      if (!isAudited(c)) return; // skip days with no ticks at all
       rowNum++;
       const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short'});
       logRows.push([
@@ -1219,8 +1224,8 @@ async function exportExcel() {
     let total=0, complete=0, partial=0, notDone=0, applied=0, recorded=0;
     weekdays.forEach(date => {
       const c  = checkMap[`${p.id}__${date}`];
+      if (!isAudited(c)) return; // skip pending days
       const st = checkStatus(c);
-      if (st === 'Pending') return;
       total++;
       if (st === 'Complete') complete++;
       else if (st.startsWith('Partial')) partial++;
@@ -1263,8 +1268,8 @@ async function exportExcel() {
     wp.forEach(p => {
       weekdays.forEach(date => {
         const c  = checkMap[`${p.id}__${date}`];
+        if (!isAudited(c)) return; // skip pending days
         const st = checkStatus(c);
-        if (st === 'Pending') return;
         total++;
         if (st === 'Complete') complete++;
         else if (st.startsWith('Partial')) partial++;
