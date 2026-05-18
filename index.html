@@ -254,6 +254,19 @@
   /* FOOTER */
   .footer-note{text-align:center;font-size:0.76rem;color:var(--slate-light);padding:14px 0;border-top:1px solid var(--border);margin-top:6px;}
 
+  /* MONTH PICKER MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(3px);z-index:1000;align-items:center;justify-content:center;padding:16px;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:white;border-radius:16px;padding:28px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:mIn 0.18s ease;}
+  @keyframes mIn{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+  .modal-box h3{font-size:1rem;font-weight:700;color:var(--teal-dark);margin-bottom:6px;}
+  .modal-box p{font-size:0.82rem;color:var(--slate-light);margin-bottom:20px;}
+  .modal-box .mg{display:flex;flex-direction:column;gap:4px;margin-bottom:18px;}
+  .modal-box .mg label{font-size:0.72rem;font-weight:700;color:var(--slate-light);text-transform:uppercase;}
+  .modal-box .mg input[type="month"]{font-family:'DM Mono',monospace;font-size:0.9rem;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;color:var(--slate);background:var(--bg);width:100%;}
+  .modal-box .mg input[type="month"]:focus{outline:none;border-color:#0d9488;}
+  .modal-footer{display:flex;gap:10px;justify-content:flex-end;}
+
   /* PRINT */
   @media print{
     header{background:var(--teal-dark) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -282,7 +295,7 @@
     </div>
     <div class="header-right">
       <div class="week-badge" id="todayBadge">—</div>
-      <button class="btn btn-outline" onclick="exportExcel()">📊 Monthly Report</button>
+      <button class="btn btn-outline" onclick="openMonthModal()">📊 Monthly Report</button>
       <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
     </div>
   </div>
@@ -421,6 +434,22 @@
 
   <div class="footer-note">🩹 Data stored in Supabase · saves automatically · use <strong>Excel</strong> or <strong>Print</strong> to export</div>
 </main>
+
+<!-- MONTH PICKER MODAL -->
+<div class="modal-overlay" id="monthModal">
+  <div class="modal-box">
+    <h3>📊 Export Monthly Report</h3>
+    <p>Select the month you want to export. Only days with at least one recorded tick are included. Partial days count as 100% compliant.</p>
+    <div class="mg">
+      <label>Select Month</label>
+      <input type="month" id="exportMonth">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeMonthModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="runExport()">📥 Export</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ═══════════════════════════════════════════════════
@@ -1086,215 +1115,189 @@ function updateStats() {
   }).join('');
 }
 
+
+// ═══════════════════════════════════════════════════
+// MONTH PICKER MODAL
+// ═══════════════════════════════════════════════════
+function openMonthModal() {
+  if (!patients.length) { showToast('⚠️ No patients to export', true); return; }
+  const base = auditDateKey || new Date().toISOString().slice(0,10);
+  document.getElementById('exportMonth').value = base.slice(0,7);
+  document.getElementById('monthModal').classList.add('open');
+}
+function closeMonthModal() {
+  document.getElementById('monthModal').classList.remove('open');
+}
+function runExport() {
+  const val = document.getElementById('exportMonth').value;
+  if (!val) { showToast('⚠️ Please select a month', true); return; }
+  closeMonthModal();
+  exportExcel(val);
+}
+document.getElementById('monthModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeMonthModal();
+});
+
 // ═══════════════════════════════════════════════════
 // EXCEL EXPORT — MONTHLY REPORT
+// Partial days = 100% compliant. Pending days excluded.
 // ═══════════════════════════════════════════════════
-async function exportExcel() {
+async function exportExcel(yearMonth) {
   if (!patients.length) { showToast('⚠️ No patients to export', true); return; }
-  if (!auditDateKey)    { showToast('⚠️ Please select a date first', true); return; }
 
-  // ── Work out the full month range ─────────────────
-  const [year, month] = auditDateKey.split('-').map(Number);
+  const [year, month] = yearMonth.split('-').map(Number);
   const monthStart = `${year}-${String(month).padStart(2,'0')}-01`;
   const lastDay    = new Date(year, month, 0).getDate();
   const monthEnd   = `${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
   const monthName  = new Date(year, month-1, 1).toLocaleDateString('en-GB', {month:'long', year:'numeric'});
 
-  // ── Collect all weekdays in the month ─────────────
   const weekdays = [];
   for (let d = 1; d <= lastDay; d++) {
-    const dt  = new Date(year, month-1, d);
-    const day = dt.getDay();
-    if (day >= 1 && day <= 5) {
+    const day = new Date(year, month-1, d).getDay();
+    if (day >= 1 && day <= 5)
       weekdays.push(`${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
-    }
   }
 
   showToast('⏳ Fetching monthly data…');
   setLoading(true);
 
-  // ── Fetch ALL audit checks for this month ─────────
   const { data: monthChecks, error } = await sb
-    .from('audit_checks')
-    .select('*')
+    .from('audit_checks').select('*')
     .gte('audit_date', monthStart)
     .lte('audit_date', monthEnd);
 
   setLoading(false);
-
   if (error) { showToast('⚠️ Could not fetch data: ' + error.message, true); return; }
 
-  // Index checks by patient_id + date
   const checkMap = {};
   (monthChecks || []).forEach(r => {
-    const key = `${r.patient_id}__${r.audit_date}`;
-    checkMap[key] = { morning: r.morning, midday: r.midday, afternoon: r.afternoon };
+    checkMap[`${r.patient_id}__${r.audit_date}`] =
+      { morning: r.morning, midday: r.midday, afternoon: r.afternoon };
   });
 
-  const sl  = v => v===true ? 'Applied ✓' : v===false ? 'Missed ✗' : '';
-  const wb  = XLSX.utils.book_new();
+  const slotLabel = v => v === true ? 'Applied ✓' : v === false ? 'Missed ✗' : '';
 
-  // ── Helper: status for a given check row ──────────
-  function checkStatus(c) {
-    if (!c) return 'Pending';
-    const vs = [c.morning, c.midday, c.afternoon];
-    const rec = vs.filter(v => v !== null);
-    if (!rec.length)                  return 'Pending';
-    if (vs.every(v => v === true))    return 'Complete';
-    if (vs.every(v => v === false))   return 'Not Done';
-    return `Partial (${vs.filter(v=>v===true).length}/3)`;
-  }
-
-  // A day is "audited" only if at least one slot was explicitly ticked (true or false)
   function isAudited(c) {
     if (!c) return false;
     return c.morning !== null || c.midday !== null || c.afternoon !== null;
   }
 
-  function compPct(c) {
-    if (!c) return '—';
-    const vs  = [c.morning, c.midday, c.afternoon];
-    const rec = vs.filter(v => v !== null);
-    if (!rec.length) return '—';
-    return Math.round((vs.filter(v=>v===true).length / 3) * 100) + '%';
+  function checkStatus(c) {
+    if (!isAudited(c)) return 'Pending';
+    const vs = [c.morning, c.midday, c.afternoon];
+    if (vs.every(v => v === true))  return 'Complete';
+    if (vs.every(v => v === false)) return 'Not Done';
+    return `Partial (${vs.filter(v=>v===true).length}/3)`;
   }
 
-  // ════════════════════════════════════════════════
-  // SHEET 1 — MONTHLY AUDIT LOG
-  // One row per patient per day (Pending days excluded)
-  // ════════════════════════════════════════════════
+  // Partial counts as compliant (100%)
+  function isCompliant(c) {
+    if (!isAudited(c)) return null;
+    const vs = [c.morning, c.midday, c.afternoon];
+    if (vs.every(v => v === false)) return false;
+    return true; // any applied slot = compliant
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  // ── Sheet 1: Monthly Audit Log ─────────────────────
   const logRows = [
     [`SPLINT APPLICATION AUDIT — MONTHLY REPORT`],
-    [`Month: ${monthName}`, '', '', '', '', '', '', '', `Generated: ${new Date().toLocaleDateString('en-GB')}`],
-    [`Note: Days with no recorded splint application (Pending) are excluded from this report.`],
+    [`Month: ${monthName}`, '','','','','','','',`Generated: ${new Date().toLocaleDateString('en-GB')}`],
+    [`Note: Pending days (no ticks) excluded. Partial compliance counts as 100%.`],
     [],
-    ['#', 'Patient Name', 'MRN', 'Room', 'Ward', 'Splints & Laterality', 'Audit Date', 'Morning (6–8 AM)', 'Midday (10–12 PM)', 'Afternoon (2–4 PM)', 'Status', 'Compliance %'],
+    ['#','Patient Name','MRN','Room','Ward','Splints & Laterality','Audit Date',
+     'Morning (6–8 AM)','Midday (10–12 PM)','Afternoon (2–4 PM)','Status','Compliant?'],
   ];
 
   let rowNum = 0;
   patients.forEach(p => {
     const splintStr = p.splints.map(s => `${s.name} (${LAT_LABEL[s.lat]||'Both'})`).join('; ');
     weekdays.forEach(date => {
-      const key = `${p.id}__${date}`;
-      const c   = checkMap[key];
-      if (!isAudited(c)) return; // skip days with no ticks at all
+      const c = checkMap[`${p.id}__${date}`];
+      if (!isAudited(c)) return;
       rowNum++;
-      const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short'});
+      const displayDate = new Date(date + 'T00:00:00')
+        .toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short'});
+      const comp = isCompliant(c);
       logRows.push([
-        rowNum,
-        p.name,
-        p.mrn || '',
-        p.room,
-        p.ward || 'Ward A',
-        splintStr,
-        displayDate,
-        sl(c?.morning),
-        sl(c?.midday),
-        sl(c?.afternoon),
-        st,
-        compPct(c),
+        rowNum, p.name, p.mrn||'', p.room, p.ward||'Ward A', splintStr, displayDate,
+        slotLabel(c.morning), slotLabel(c.midday), slotLabel(c.afternoon),
+        checkStatus(c),
+        comp === true ? 'Yes ✓' : comp === false ? 'No ✗' : '—',
       ]);
     });
   });
-
-  if (rowNum === 0) {
-    logRows.push(['', 'No recorded audit data for this month (all days are Pending).']);
-  }
+  if (rowNum === 0) logRows.push(['','No recorded audit data for this month.']);
 
   const ws1 = XLSX.utils.aoa_to_sheet(logRows);
-  ws1['!cols'] = [{wch:4},{wch:24},{wch:12},{wch:12},{wch:10},{wch:34},{wch:16},{wch:18},{wch:18},{wch:18},{wch:16},{wch:12}];
-  ws1['!merges'] = [
-    {s:{r:0,c:0}, e:{r:0,c:11}},
-    {s:{r:2,c:0}, e:{r:2,c:11}},
-  ];
+  ws1['!cols'] = [{wch:4},{wch:24},{wch:12},{wch:12},{wch:10},{wch:34},{wch:16},
+                  {wch:18},{wch:18},{wch:18},{wch:22},{wch:12}];
+  ws1['!merges'] = [{s:{r:0,c:0},e:{r:0,c:11}},{s:{r:2,c:0},e:{r:2,c:11}}];
   XLSX.utils.book_append_sheet(wb, ws1, 'Monthly Audit Log');
 
-  // ════════════════════════════════════════════════
-  // SHEET 2 — PATIENT SUMMARY
-  // One row per patient: total days audited, compliance % for the month
-  // ════════════════════════════════════════════════
+  // ── Sheet 2: Patient Summary ───────────────────────
   const sumRows = [
     [`PATIENT COMPLIANCE SUMMARY — ${monthName}`],
-    [`Excludes days with no recorded activity (Pending).`],
+    [`Partial compliance counts as 100%. Pending days excluded.`],
     [],
-    ['Patient Name', 'MRN', 'Room', 'Ward', 'Days Audited', 'Complete Days', 'Partial Days', 'Not Done Days', 'Monthly Compliance %'],
+    ['Patient Name','MRN','Room','Ward','Days Audited','Compliant Days','Non-Compliant Days','Monthly Compliance %'],
   ];
-
   patients.forEach(p => {
-    let total=0, complete=0, partial=0, notDone=0, applied=0, recorded=0;
+    let total=0, compliant=0, nonCompliant=0;
     weekdays.forEach(date => {
-      const c  = checkMap[`${p.id}__${date}`];
-      if (!isAudited(c)) return; // skip pending days
-      const st = checkStatus(c);
+      const c = checkMap[`${p.id}__${date}`];
+      if (!isAudited(c)) return;
       total++;
-      if (st === 'Complete') complete++;
-      else if (st.startsWith('Partial')) partial++;
-      else if (st === 'Not Done') notDone++;
-      if (c) {
-        const vs = [c.morning, c.midday, c.afternoon];
-        applied  += vs.filter(v => v === true).length;
-        recorded += vs.filter(v => v !== null).length;
-      }
+      const comp = isCompliant(c);
+      if (comp === true)  compliant++;
+      else if (comp === false) nonCompliant++;
     });
-    if (total === 0) return; // also skip patients with all-Pending month
-    const monthPct = recorded > 0 ? Math.round((applied / recorded) * 100) + '%' : '—';
-    sumRows.push([p.name, p.mrn||'', p.room, p.ward||'Ward A', total, complete, partial, notDone, monthPct]);
+    if (total === 0) return;
+    sumRows.push([p.name, p.mrn||'', p.room, p.ward||'Ward A',
+      total, compliant, nonCompliant,
+      Math.round((compliant/total)*100)+'%']);
   });
-
-  if (sumRows.length === 4) {
-    sumRows.push(['No audited patients this month.']);
-  }
+  if (sumRows.length === 4) sumRows.push(['No audited patients this month.']);
 
   const ws2 = XLSX.utils.aoa_to_sheet(sumRows);
-  ws2['!cols'] = [{wch:24},{wch:12},{wch:12},{wch:10},{wch:14},{wch:16},{wch:14},{wch:14},{wch:20}];
-  ws2['!merges'] = [
-    {s:{r:0,c:0}, e:{r:0,c:8}},
-    {s:{r:1,c:0}, e:{r:1,c:8}},
-  ];
+  ws2['!cols'] = [{wch:24},{wch:12},{wch:12},{wch:10},{wch:14},{wch:16},{wch:20},{wch:22}];
+  ws2['!merges'] = [{s:{r:0,c:0},e:{r:0,c:7}},{s:{r:1,c:0},e:{r:1,c:7}}];
   XLSX.utils.book_append_sheet(wb, ws2, 'Patient Summary');
 
-  // ════════════════════════════════════════════════
-  // SHEET 3 — WARD SUMMARY
-  // ════════════════════════════════════════════════
+  // ── Sheet 3: Ward Summary ──────────────────────────
   const wardRows = [
     [`WARD COMPLIANCE SUMMARY — ${monthName}`],
+    [`Partial compliance counts as 100%. Pending days excluded.`],
     [],
-    ['Ward', 'Patients', 'Days Audited', 'Complete', 'Partial', 'Not Done', 'Monthly Compliance %'],
+    ['Ward','Patients','Days Audited','Compliant Days','Non-Compliant Days','Monthly Compliance %'],
   ];
-
   ['Ward A','Ward B','ICU 1','ICU 2'].forEach(ward => {
     const wp = patients.filter(p => p.ward === ward);
-    let total=0, complete=0, partial=0, notDone=0, applied=0, recorded=0;
+    let total=0, compliant=0, nonCompliant=0;
     wp.forEach(p => {
       weekdays.forEach(date => {
-        const c  = checkMap[`${p.id}__${date}`];
-        if (!isAudited(c)) return; // skip pending days
-        const st = checkStatus(c);
+        const c = checkMap[`${p.id}__${date}`];
+        if (!isAudited(c)) return;
         total++;
-        if (st === 'Complete') complete++;
-        else if (st.startsWith('Partial')) partial++;
-        else if (st === 'Not Done') notDone++;
-        if (c) {
-          const vs = [c.morning, c.midday, c.afternoon];
-          applied  += vs.filter(v => v === true).length;
-          recorded += vs.filter(v => v !== null).length;
-        }
+        const comp = isCompliant(c);
+        if (comp === true)  compliant++;
+        else if (comp === false) nonCompliant++;
       });
     });
-    const pct = recorded > 0 ? Math.round((applied/recorded)*100)+'%' : 'N/A';
-    wardRows.push([ward, wp.length, total, complete, partial, notDone, pct]);
+    wardRows.push([ward, wp.length, total, compliant, nonCompliant,
+      total > 0 ? Math.round((compliant/total)*100)+'%' : 'N/A']);
   });
 
   const ws3 = XLSX.utils.aoa_to_sheet(wardRows);
-  ws3['!cols'] = [{wch:12},{wch:10},{wch:14},{wch:12},{wch:10},{wch:12},{wch:22}];
-  ws3['!merges'] = [{s:{r:0,c:0}, e:{r:0,c:6}}];
+  ws3['!cols'] = [{wch:12},{wch:10},{wch:14},{wch:16},{wch:20},{wch:22}];
+  ws3['!merges'] = [{s:{r:0,c:0},e:{r:0,c:5}},{s:{r:1,c:0},e:{r:1,c:5}}];
   XLSX.utils.book_append_sheet(wb, ws3, 'Ward Summary');
 
-  // ── Download ──────────────────────────────────────
-  const filename = `Splint_Audit_${year}-${String(month).padStart(2,'0')}_Monthly_Report.xlsx`;
-  XLSX.writeFile(wb, filename);
-  showToast(`✅ Monthly report exported`);
+  XLSX.writeFile(wb, `Splint_Audit_${year}-${String(month).padStart(2,'0')}_Monthly_Report.xlsx`);
+  showToast(`✅ ${monthName} report exported`);
 }
+
 
 // ═══════════════════════════════════════════════════
 // KEYBOARD: Enter to add patient
